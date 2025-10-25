@@ -30,30 +30,11 @@ const ProductList = ({ products, title }) => {
   return (
     <div className="product-grid" style={{ padding: '40px 20px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: '30px',
-          flexWrap: 'wrap',
-          gap: '16px'
-        }}>
-          <Title level={2} style={{ margin: 0 }}>
+        {title && (
+          <Title level={2} style={{ margin: '0 0 30px 0', textAlign: 'center' }}>
             {title}
           </Title>
-          <Space>
-            <span>Sort by:</span>
-            <Select
-              value={sortBy}
-              onChange={setSortBy}
-              style={{ width: 150 }}
-            >
-              <Option value="name">Name</Option>
-              <Option value="price-low">Price: Low to High</Option>
-              <Option value="price-high">Price: High to Low</Option>
-            </Select>
-          </Space>
-        </div>
+        )}
 
         <Row gutter={[24, 24]}>
           {currentProducts.map(product => (

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Typography, Breadcrumb, Row, Col } from 'antd';
+import { Typography, Breadcrumb, Row, Col, Dropdown, Button } from 'antd';
+import { FilterOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import ProductList from '../components/ProductList';
-import Slider from '../components/Slider';
-import CTA from '../components/CTA';
 import Footer from '../components/Footer';
+import Offer from '../components/Offer';
 import { ashtaDhatuProducts } from '../data/products';
 import hero1 from '../assets/jewelleryImage.jpg';
 import p1 from '../assets/c1.jpg';
@@ -90,19 +90,60 @@ const AshtaDhatu = () => {
         </Row>
       </div>
 
-      {/* Slider Banners */}
-      <Slider />
+      {/* Offer Section */}
 
       {/* Products */}
       <div style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
-        <ProductList 
-          products={ashtaDhatuProducts} 
-          title="Featured Ashta Dhatu Products"
-        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', fontSize: '16px' }}>Filter:</span>
+            <Dropdown
+              menu={{
+                items: [
+                  { key: '1', label: 'All Categories' },
+                  { key: '2', label: 'Rings' },
+                  { key: '3', label: 'Pendants' },
+                  { key: '4', label: 'Bracelets' },
+                  { key: '5', label: 'Earrings' },
+                  { key: '6', label: 'Necklaces' },
+                  { key: '7', label: 'Price: Under ₹5000' },
+                  { key: '8', label: 'Price: ₹5000-₹15000' },
+                  { key: '9', label: 'Price: Above ₹15000' }
+                ]
+              }}
+              trigger={['click']}
+            >
+              <Button icon={<FilterOutlined />} style={{ fontFamily: "'Josefin Sans', sans-serif", height: '32px', minWidth: '120px' }}>
+                All
+              </Button>
+            </Dropdown>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', fontSize: '16px' }}>Sort by:</span>
+            <Dropdown
+              menu={{
+                items: [
+                  { key: '1', label: 'Featured' },
+                  { key: '2', label: 'Price: Low to High' },
+                  { key: '3', label: 'Price: High to Low' },
+                  { key: '4', label: 'Newest' },
+                  { key: '5', label: 'Best Selling' },
+                  { key: '6', label: 'Customer Rating' }
+                ]
+              }}
+              trigger={['click']}
+            >
+              <Button style={{ fontFamily: "'Josefin Sans', sans-serif", height: '32px', minWidth: '120px' }}>
+                Featured
+              </Button>
+            </Dropdown>
+          </div>
+        </div>
+        <ProductList products={ashtaDhatuProducts} />
       </div>
 
-      {/* Image Section Component */}
-      <CTA />
+      <Offer /> 
 
       {/* Footer */}
       <Footer />
