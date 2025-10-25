@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Badge, Button, Drawer } from 'antd';
 import { ShoppingCartOutlined, UserOutlined, HeartOutlined, SearchOutlined, MenuOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
@@ -15,14 +15,21 @@ const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 992);
+      
+
+      
+
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+
 
   return (
     <>
@@ -100,7 +107,7 @@ const Navbar = () => {
           <div
             style={{
               display: 'flex',
-              gap: '50px',
+              gap: window.innerWidth > 1200 ? '50px' : '30px',
               alignItems: 'center',
               fontSize: '15px',
               fontWeight: 500,
@@ -108,6 +115,7 @@ const Navbar = () => {
               flex: '2',
               justifyContent: 'center',
               whiteSpace: 'nowrap',
+              minWidth: 0
             }}
           >
             <Link 
@@ -179,23 +187,18 @@ const Navbar = () => {
           alignItems: 'center', 
           gap: isMobile ? '8px' : '15px',
           flex: '1',
-          justifyContent: 'flex-end'
+          justifyContent: 'flex-end',
+          minWidth: 0
         }}>
           {/* Search Bar - Desktop Only */}
           {!isMobile && (
-            <Input
-              placeholder="Search gifts..."
-              prefix={<SearchOutlined style={{ color: '#999' }} />}
-              style={{
-                width: 220,
-                borderRadius: '25px',
-                border: '1px solid #e0e0e0',
-                backgroundColor: '#f8f9fa',
-                fontFamily: "'Josefin Sans', sans-serif",
-                fontSize: '14px',
-              }}
-              className="search-input"
-            />
+            <div className="search-container">
+              <Input
+                placeholder="Search gifts..."
+                prefix={<SearchOutlined style={{ color: '#999' }} />}
+                className="navbar-search"
+              />
+            </div>
           )}
 
           {/* Icons */}
@@ -389,17 +392,44 @@ const Navbar = () => {
           0% { transform: translateX(100%); }
           100% { transform: translateX(-100%); }
         }
-        .search-input:focus {
-          border-color: #0d4b4b !important;
-          box-shadow: 0 0 0 2px rgba(13, 75, 75, 0.1) !important;
+        .search-container {
+          position: relative;
+          display: flex;
+          justify-content: flex-end;
         }
-        .search-input .ant-input {
-          background-color: transparent !important;
-          color: #333 !important;
+        
+        .navbar-search {
+          width: 10vw;
+          min-width: 180px;
+          max-width: 300px;
+          borderRadius: 25px;
+          border: 1px solid #e0e0e0;
+          backgroundColor: #f8f9fa;
+          fontFamily: 'Josefin Sans', sans-serif;
+          fontSize: 14px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transform-origin: right center;
         }
-        .search-input .ant-input::placeholder {
-          color: #999 !important;
+        
+        .navbar-search:hover,
+        .navbar-search:focus {
+          width: 25vw;
+          min-width: 250px;
+          border-color: #0d4b4b;
+          box-shadow: 0 0 0 2px rgba(13, 75, 75, 0.1);
         }
+        
+        .navbar-search .ant-input {
+          background-color: transparent;
+          border: none;
+          box-shadow: none;
+        }
+        
+        .navbar-search .ant-input::placeholder {
+          color: #999;
+        }
+        
+
       `}</style>
     </>
   );
