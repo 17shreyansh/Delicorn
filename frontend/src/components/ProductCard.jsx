@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Button, Typography, Space, Rate } from 'antd';
 import { HeartOutlined } from '@ant-design/icons';
-// import { useNavigate } from 'react-router-dom'; // No longer needed
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 
@@ -9,7 +9,7 @@ const { Meta } = Card;
 const { Text } = Typography;
 
 const ProductCard = ({ product }) => {
-  // const navigate = useNavigate(); // No longer needed
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useUser();
 
@@ -27,9 +27,10 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  // const handleViewDetails = () => { // No longer needed
-  //   navigate(`/product/${product.id}`);
-  // };
+  const handleViewDetails = () => {
+    console.log('Navigating to product:', product.id);
+    navigate(`/product/${product.id}`);
+  };
 
   // Calculate discount percentage if originalPrice exists
   const discountPercent = product.originalPrice
@@ -39,6 +40,7 @@ const ProductCard = ({ product }) => {
   return (
     // Removed Badge.Ribbon wrapper
     <Card
+      onClick={handleViewDetails}
       style={{
         width: '100%',
         maxWidth: '300px',
@@ -46,7 +48,8 @@ const ProductCard = ({ product }) => {
         borderRadius: '8px',
         overflow: 'hidden',
         border: 'none',
-        boxShadow: 'none'
+        boxShadow: 'none',
+        cursor: 'pointer'
       }}
       styles={{ body: { padding: '0' } }}
       cover={
