@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Layout, Row, Col, Card, Typography, Button, Modal, Form, Input, Select, Space } from 'antd';
+import { Row, Col, Card, Typography, Button, Modal, Form, Input, Select, Space } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import Sidebar from '../../components/Sidebar';
+import AccountLayout from '../../components/AccountLayout';
+import AccountContent from '../../components/AccountContent';
 
-const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 
 const Addresses = () => {
@@ -53,29 +53,25 @@ const Addresses = () => {
   };
 
   return (
-    <Layout style={{ marginTop: '64px' }}>
-      <Content style={{ padding: '40px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <Title level={2}>Saved Addresses</Title>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddAddress}>
-              Add New Address
-            </Button>
-          </div>
-          
-          <Row gutter={[32, 32]}>
-            <Col xs={24} md={6}>
-              <Sidebar />
-            </Col>
-            
-            <Col xs={24} md={18}>
-              <Row gutter={[16, 16]}>
+    <AccountLayout title="Saved Addresses">
+      <AccountContent>
+        <div style={{ marginBottom: '24px', textAlign: 'right' }}>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={handleAddAddress}
+          >
+            Add New Address
+          </Button>
+        </div>
+        <Row gutter={[16, 16]}>
                 {addresses.map(address => (
                   <Col xs={24} lg={12} key={address.id}>
                     <Card
+                      className="account-card"
                       title={
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>{address.type}</span>
+                          <span style={{ fontWeight: 600, color: '#114D4D' }}>{address.type}</span>
                           {address.isDefault && <Text type="secondary">(Default)</Text>}
                         </div>
                       }
@@ -95,19 +91,32 @@ const Addresses = () => {
                     </Card>
                   </Col>
                 ))}
-              </Row>
-            </Col>
-          </Row>
-        </div>
+        </Row>
 
         <Modal
-          title="Add New Address"
+          title={
+            <Text style={{ fontFamily: 'Josefin Sans, sans-serif', fontWeight: 600, color: '#114D4D' }}>
+              Add New Address
+            </Text>
+          }
           open={isModalVisible}
           onOk={handleModalOk}
           onCancel={handleModalCancel}
           width={600}
+          okButtonProps={{
+            style: {
+              background: '#114D4D',
+              borderColor: '#114D4D',
+              fontFamily: 'Josefin Sans, sans-serif',
+            }
+          }}
+          cancelButtonProps={{
+            style: {
+              fontFamily: 'Josefin Sans, sans-serif',
+            }
+          }}
         >
-          <Form form={form} layout="vertical">
+          <Form form={form} layout="vertical" style={{ fontFamily: 'Josefin Sans, sans-serif' }}>
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={12}>
                 <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
@@ -156,8 +165,8 @@ const Addresses = () => {
             </Row>
           </Form>
         </Modal>
-      </Content>
-    </Layout>
+      </AccountContent>
+    </AccountLayout>
   );
 };
 

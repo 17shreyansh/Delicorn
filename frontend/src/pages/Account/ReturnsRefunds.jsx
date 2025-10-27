@@ -1,10 +1,10 @@
 import React from 'react';
-import { Layout, Row, Col, Card, Typography, Tag, Button, Space, Empty } from 'antd';
+import { Row, Col, Card, Typography, Tag, Button, Space, Empty } from 'antd';
 import { UndoOutlined } from '@ant-design/icons';
-import Sidebar from '../../components/Sidebar';
+import AccountLayout from '../../components/AccountLayout';
+import AccountContent from '../../components/AccountContent';
 
-const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const ReturnsRefunds = () => {
   const returns = [
@@ -38,68 +38,57 @@ const ReturnsRefunds = () => {
   };
 
   return (
-    <Layout style={{ marginTop: '64px' }}>
-      <Content style={{ padding: '40px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Title level={2} style={{ marginBottom: '30px' }}>Returns & Refunds</Title>
-          
-          <Row gutter={[32, 32]}>
-            <Col xs={24} md={6}>
-              <Sidebar />
-            </Col>
-            
-            <Col xs={24} md={18}>
-              {returns.length === 0 ? (
-                <Empty
-                  image={<UndoOutlined style={{ fontSize: '64px', color: '#ccc' }} />}
-                  description="No returns or refunds"
-                />
-              ) : (
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  {returns.map(returnItem => (
-                    <Card key={returnItem.id}>
-                      <Row gutter={[16, 16]} align="middle">
-                        <Col xs={24} sm={4}>
-                          <img
-                            src={returnItem.image}
-                            alt="Return Item"
-                            style={{ 
-                              width: '80px', 
-                              height: '80px', 
-                              objectFit: 'cover',
-                              borderRadius: '8px'
-                            }}
-                          />
-                        </Col>
-                        <Col xs={24} sm={12}>
-                          <Space direction="vertical" size="small">
-                            <Text strong>Return #{returnItem.id}</Text>
-                            <Text type="secondary">Order #{returnItem.orderId}</Text>
-                            <Text type="secondary">Requested on {returnItem.date}</Text>
-                            <Text>Reason: {returnItem.reason}</Text>
-                            <Tag color={getStatusColor(returnItem.status)}>{returnItem.status}</Tag>
-                          </Space>
-                        </Col>
-                        <Col xs={24} sm={4}>
-                          <Text strong style={{ fontSize: '16px' }}>
-                            ₹{returnItem.amount.toLocaleString()}
-                          </Text>
-                        </Col>
-                        <Col xs={24} sm={4}>
-                          <Button>
-                            Track Status
-                          </Button>
-                        </Col>
-                      </Row>
+    <AccountLayout title="Returns & Refunds">
+      <AccountContent>
+        {returns.length === 0 ? (
+          <Empty
+            image={<UndoOutlined style={{ fontSize: '64px', color: '#114D4D' }} />}
+            description="No returns or refunds"
+          />
+        ) : (
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            {returns.map(returnItem => (
+              <Card key={returnItem.id} className="account-card">
+                <Row gutter={[16, 16]} align="middle">
+                  <Col xs={6} sm={4}>
+                    <img
+                      src={returnItem.image}
+                      alt="Return Item"
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '80px',
+                        height: '80px', 
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </Col>
+                  <Col xs={18} sm={12}>
+                    <Space direction="vertical" size="small">
+                      <Text strong>Return #{returnItem.id}</Text>
+                      <Text type="secondary">Order #{returnItem.orderId}</Text>
+                      <Text type="secondary">Requested on {returnItem.date}</Text>
+                      <Text>Reason: {returnItem.reason}</Text>
+                      <Tag color={getStatusColor(returnItem.status)}>{returnItem.status}</Tag>
+                    </Space>
+                  </Col>
+                  <Col xs={12} sm={4} style={{ textAlign: 'center' }}>
+                    <Text strong style={{ fontSize: '16px' }}>
+                      ₹{returnItem.amount.toLocaleString()}
+                    </Text>
+                  </Col>
+                  <Col xs={12} sm={4} style={{ textAlign: 'right' }}>
+                    <Button type="primary">
+                      Track Status
+                    </Button>
+                  </Col>
+                </Row>
                     </Card>
-                  ))}
-                </Space>
-              )}
-            </Col>
-          </Row>
-        </div>
-      </Content>
-    </Layout>
+            ))}
+          </Space>
+        )}
+      </AccountContent>
+    </AccountLayout>
   );
 };
 

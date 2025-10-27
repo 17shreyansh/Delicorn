@@ -1,159 +1,82 @@
 import React from 'react';
-import { Layout, Row, Col, Typography, Card, Timeline } from 'antd';
-import { TrophyOutlined, HeartOutlined, StarOutlined, TeamOutlined } from '@ant-design/icons';
-
-const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+import aboutImage from '../assets/aboutus.jpg'; // adjust the path as needed
 
 const AboutUs = () => {
   return (
-    <Layout style={{ marginTop: '64px' }}>
-      <Content style={{ padding: '40px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {/* Hero Section */}
-          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-            <Title level={1}>About Delicons</Title>
-            <Paragraph style={{ fontSize: '20px', color: '#666', maxWidth: '800px', margin: '0 auto' }}>
-              Crafting exquisite jewelry with passion, tradition, and modern elegance since 2010. 
-              We believe every piece tells a story and creates lasting memories.
-            </Paragraph>
-          </div>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 20px', color: '#333', lineHeight: '1.7', fontFamily: 'Josefin Sans, sans-serif' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: '50px', fontSize: '36px', color: '#0b3b3b' }}>About us</h1>
 
-          {/* Story Section */}
-          <Row gutter={[40, 40]} style={{ marginBottom: '80px' }}>
-            <Col xs={24} lg={12}>
-              <img
-                src="https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=600"
-                alt="Our Story"
-                style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: '12px' }}
-              />
-            </Col>
-            <Col xs={24} lg={12}>
-              <Title level={2}>Our Story</Title>
-              <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
-                Founded in 2010 by master craftsmen with over 30 years of experience, Delicons began as a small 
-                family workshop dedicated to preserving the ancient art of Ashta Dhatu jewelry making. Our journey 
-                started with a simple belief: that jewelry should not just be beautiful, but meaningful.
-              </Paragraph>
-              <Paragraph style={{ fontSize: '16px', lineHeight: '1.8' }}>
-                Today, we've grown into a trusted name in both traditional and contemporary jewelry, serving 
-                customers across India and beyond. Every piece we create carries forward our commitment to 
-                quality, authenticity, and the timeless beauty of handcrafted jewelry.
-              </Paragraph>
-            </Col>
-          </Row>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '40px' }}>
+        
+        {/* Left Side - Text */}
+        <div style={{ flex: '1 1 600px', minWidth: '300px' }}>
+          <h3 style={{ fontSize: '20px', color: '#1a4c4c', marginBottom: '15px' }}>Importance & Procedure for Wearing :</h3>
+          <p>
+            Importance of Ashtadhatu is deeply rooted in Indian culture, religious and ayurvedic traditions. 
+            According to astrology, every metal has its inherent energy and has different effects on the human body, 
+            in which Ashtadhatu is considered the most effective as it is made from a blend of eight sacred metals i.e. 
+            gold, silver, copper, lead, zinc, tin, iron, and mercury.
+          </p>
+          <p>
+            These metals come together to form a material that symbolizes strength, peace and positive energy. 
+            Ashtadhatu is known for its spiritual and therapeutic properties. It is often used to craft religious idols, 
+            jewelry, and other sacred items.
+          </p>
 
-          {/* Values Section */}
-          <div style={{ marginBottom: '80px' }}>
-            <Title level={2} style={{ textAlign: 'center', marginBottom: '40px' }}>Our Values</Title>
-            <Row gutter={[32, 32]}>
-              <Col xs={24} sm={12} lg={6}>
-                <Card style={{ textAlign: 'center', height: '100%' }}>
-                  <TrophyOutlined style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }} />
-                  <Title level={4}>Quality</Title>
-                  <Paragraph>
-                    We use only the finest materials and traditional techniques to ensure every piece meets our high standards.
-                  </Paragraph>
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Card style={{ textAlign: 'center', height: '100%' }}>
-                  <HeartOutlined style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }} />
-                  <Title level={4}>Passion</Title>
-                  <Paragraph>
-                    Our love for jewelry making drives us to create pieces that resonate with your personal style and story.
-                  </Paragraph>
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Card style={{ textAlign: 'center', height: '100%' }}>
-                  <StarOutlined style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }} />
-                  <Title level={4}>Tradition</Title>
-                  <Paragraph>
-                    We honor ancient craftsmanship techniques while embracing modern design sensibilities.
-                  </Paragraph>
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Card style={{ textAlign: 'center', height: '100%' }}>
-                  <TeamOutlined style={{ fontSize: '48px', color: '#667eea', marginBottom: '16px' }} />
-                  <Title level={4}>Trust</Title>
-                  <Paragraph>
-                    Building lasting relationships with our customers through transparency, authenticity, and exceptional service.
-                  </Paragraph>
-                </Card>
-              </Col>
-            </Row>
-          </div>
+          <h3 style={{ marginTop: '25px', color: '#1a4c4c' }}>1. Religious and Spiritual Significance:</h3>
+          <p>
+            Jewelry and idols made of Ashtadhatu are worshipped in religious places and homes. Wearing it is believed 
+            to bring positive changes and protection from the evil eye.
+          </p>
 
-          {/* Timeline Section */}
-          <Row gutter={[40, 40]} style={{ marginBottom: '80px' }}>
-            <Col xs={24} lg={12}>
-              <Title level={2}>Our Journey</Title>
-              <Timeline
-                items={[
-                  {
-                    children: (
-                      <div>
-                        <Title level={4}>2010 - The Beginning</Title>
-                        <Paragraph>Started as a small family workshop specializing in Ashta Dhatu jewelry.</Paragraph>
-                      </div>
-                    ),
-                  },
-                  {
-                    children: (
-                      <div>
-                        <Title level={4}>2015 - Expansion</Title>
-                        <Paragraph>Introduced fashion jewelry collection and expanded our customer base.</Paragraph>
-                      </div>
-                    ),
-                  },
-                  {
-                    children: (
-                      <div>
-                        <Title level={4}>2020 - Digital Transformation</Title>
-                        <Paragraph>Launched our online platform to reach customers nationwide.</Paragraph>
-                      </div>
-                    ),
-                  },
-                  {
-                    children: (
-                      <div>
-                        <Title level={4}>2024 - Present</Title>
-                        <Paragraph>Continuing to innovate while preserving traditional craftsmanship.</Paragraph>
-                      </div>
-                    ),
-                  },
-                ]}
-              />
-            </Col>
-            <Col xs={24} lg={12}>
-              <img
-                src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600"
-                alt="Our Craftsmanship"
-                style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: '12px' }}
-              />
-            </Col>
-          </Row>
+          <h3 style={{ marginTop: '25px', color: '#1a4c4c' }}>2. Therapeutic and Ayurvedic Importance:</h3>
+          <p>
+            Ashtadhatu contains metals like copper, silver, and gold — all known for their health benefits in Ayurveda.
+            It is believed to enhance immunity and promote mental clarity.
+          </p>
 
-          {/* Mission Section */}
-          <div style={{ 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            padding: '60px 40px',
-            borderRadius: '12px',
-            textAlign: 'center'
-          }}>
-            <Title level={2} style={{ color: 'white', marginBottom: '20px' }}>Our Mission</Title>
-            <Paragraph style={{ fontSize: '18px', color: 'white', maxWidth: '800px', margin: '0 auto' }}>
-              To create jewelry that celebrates life's precious moments, combining traditional craftsmanship 
-              with contemporary design to offer pieces that are not just accessories, but treasured heirlooms 
-              that tell your unique story.
-            </Paragraph>
-          </div>
+          <h3 style={{ marginTop: '25px', color: '#1a4c4c' }}>3. Protection from Negative Energy:</h3>
+          <p>
+            Ashtadhatu is said to protect individuals from evil eyes, negative energy, and planetary imbalances.
+          </p>
+
+          <h3 style={{ marginTop: '25px', color: '#1a4c4c' }}>4. Symbol of Wealth and Prosperity:</h3>
+          <p>
+            Associated with goddess Lakshmi, Ashtadhatu brings wealth, fortune, and harmony in life.
+          </p>
+
+          <h3 style={{ marginTop: '25px', color: '#1a4c4c' }}>5. Mental and Emotional Balance:</h3>
+          <p>
+            Wearing Ashtadhatu promotes focus, mental peace, and emotional stability — ideal for meditation and spiritual practices.
+          </p>
+
+          <h3 style={{ marginTop: '25px', color: '#1a4c4c' }}>6. Carrier of Powerful Energy:</h3>
+          <p>
+            The blend of eight metals activates chakras and purifies the aura, supporting overall spiritual development.
+          </p>
+
+          <h3 style={{ marginTop: '25px', color: '#1a4c4c' }}>7. Cultural and Traditional Significance:</h3>
+          <p>
+            Ashtadhatu is an integral part of Indian heritage. Its use preserves ancient customs while symbolizing strength and purity.
+          </p>
         </div>
-      </Content>
-    </Layout>
+
+        {/* Right Side - Image */}
+        <div style={{ flex: '1 1 400px', minWidth: '280px', alignSelf: 'stretch' }}>
+          <img
+            src={aboutImage}
+            alt="Ashtadhatu Jewelry"
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '12px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+              objectFit: 'cover',
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,84 +1,187 @@
-import React from 'react';
-import { Layout, Row, Col, Card, Typography, Button, Form, Input } from 'antd';
-import { UserOutlined, EditOutlined } from '@ant-design/icons';
-import Sidebar from '../../components/Sidebar';
+import React, { useState } from 'react';
+import { Typography, Button, Input, Form, Select, Row, Col } from 'antd';
+import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import AccountLayout from '../../components/AccountLayout';
+import AccountContent from '../../components/AccountContent';
 
-const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Text } = Typography;
+const { Option } = Select;
 
 const AccountOverview = () => {
+  const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
 
-  return (
-    <Layout style={{ marginTop: '64px' }}>
-      <Content style={{ padding: '40px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Title level={2} style={{ marginBottom: '30px' }}>My Account</Title>
-          
-          <Row gutter={[32, 32]}>
-            <Col xs={24} md={6}>
-              <Sidebar />
-            </Col>
-            
-            <Col xs={24} md={18}>
-              <Card title="Account Information" extra={<Button icon={<EditOutlined />}>Edit</Button>}>
-                <Form form={form} layout="vertical">
-                  <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={12}>
-                      <Form.Item label="First Name" name="firstName" initialValue="John">
-                        <Input disabled />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                      <Form.Item label="Last Name" name="lastName" initialValue="Doe">
-                        <Input disabled />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                      <Form.Item label="Email" name="email" initialValue="john.doe@example.com">
-                        <Input disabled />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                      <Form.Item label="Phone" name="phone" initialValue="+91 9876543210">
-                        <Input disabled />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </Form>
-              </Card>
+  const initialValues = {
+    name: 'FULLNAME',
+    phone: '9898989899',
+    email: 'Hello@Mail.Com',
+    gender: 'FEMALE',
+    dob: '09/09/1990'
+  };
 
-              <Row gutter={[16, 16]} style={{ marginTop: '24px' }}>
-                <Col xs={24} sm={8}>
-                  <Card>
-                    <div style={{ textAlign: 'center' }}>
-                      <Title level={3} style={{ color: '#667eea' }}>12</Title>
-                      <Text>Total Orders</Text>
-                    </div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Card>
-                    <div style={{ textAlign: 'center' }}>
-                      <Title level={3} style={{ color: '#52c41a' }}>8</Title>
-                      <Text>Wishlist Items</Text>
-                    </div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={8}>
-                  <Card>
-                    <div style={{ textAlign: 'center' }}>
-                      <Title level={3} style={{ color: '#fa8c16' }}>3</Title>
-                      <Text>Saved Addresses</Text>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
+  const handleEdit = () => {
+    setIsEditing(true);
+    form.setFieldsValue(initialValues);
+  };
+
+  const handleSave = () => {
+    form.validateFields().then(() => {
+      setIsEditing(false);
+      // Handle save logic here
+    });
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    form.resetFields();
+  };
+
+  return (
+    <AccountLayout title="My Account">
+      <AccountContent>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px',
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: 'Josefin Sans, sans-serif',
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#114D4D',
+            }}
+          >
+            Profile Details
+          </Text>
+          {!isEditing ? (
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={handleEdit}
+              style={{
+                color: '#114D4D',
+                fontSize: '16px',
+                fontFamily: 'Josefin Sans, sans-serif',
+              }}
+            >
+              Edit
+            </Button>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                onClick={handleSave}
+                style={{
+                  background: '#114D4D',
+                  borderColor: '#114D4D',
+                  fontFamily: 'Josefin Sans, sans-serif',
+                }}
+              >
+                Save
+              </Button>
+              <Button
+                icon={<CloseOutlined />}
+                onClick={handleCancel}
+                style={{
+                  fontFamily: 'Josefin Sans, sans-serif',
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <Form form={form} layout="vertical" initialValues={initialValues}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="name"
+                label={<Text style={{ fontWeight: 600, color: '#114D4D', fontFamily: 'Josefin Sans, sans-serif' }}>Full Name</Text>}
+                rules={[{ required: true, message: 'Please enter your name' }]}
+              >
+                <Input
+                  disabled={!isEditing}
+                  style={{
+                    fontFamily: 'Josefin Sans, sans-serif',
+                    background: isEditing ? '#fff' : '#f5f5f5',
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="phone"
+                label={<Text style={{ fontWeight: 600, color: '#114D4D', fontFamily: 'Josefin Sans, sans-serif' }}>Contact Number</Text>}
+                rules={[{ required: true, message: 'Please enter your phone number' }]}
+              >
+                <Input
+                  disabled={!isEditing}
+                  style={{
+                    fontFamily: 'Josefin Sans, sans-serif',
+                    background: isEditing ? '#fff' : '#f5f5f5',
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24}>
+              <Form.Item
+                name="email"
+                label={<Text style={{ fontWeight: 600, color: '#114D4D', fontFamily: 'Josefin Sans, sans-serif' }}>Email Address</Text>}
+                rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
+              >
+                <Input
+                  disabled={!isEditing}
+                  style={{
+                    fontFamily: 'Josefin Sans, sans-serif',
+                    background: isEditing ? '#fff' : '#f5f5f5',
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="gender"
+                label={<Text style={{ fontWeight: 600, color: '#114D4D', fontFamily: 'Josefin Sans, sans-serif' }}>Gender</Text>}
+                rules={[{ required: true, message: 'Please select your gender' }]}
+              >
+                <Select
+                  disabled={!isEditing}
+                  style={{
+                    fontFamily: 'Josefin Sans, sans-serif',
+                  }}
+                >
+                  <Option value="MALE">Male</Option>
+                  <Option value="FEMALE">Female</Option>
+                  <Option value="OTHER">Other</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="dob"
+                label={<Text style={{ fontWeight: 600, color: '#114D4D', fontFamily: 'Josefin Sans, sans-serif' }}>Date of Birth</Text>}
+                rules={[{ required: true, message: 'Please enter your date of birth' }]}
+              >
+                <Input
+                  disabled={!isEditing}
+                  placeholder="DD/MM/YYYY"
+                  style={{
+                    fontFamily: 'Josefin Sans, sans-serif',
+                    background: isEditing ? '#fff' : '#f5f5f5',
+                  }}
+                />
+              </Form.Item>
             </Col>
           </Row>
-        </div>
-      </Content>
-    </Layout>
+        </Form>
+      </AccountContent>
+    </AccountLayout>
   );
 };
 

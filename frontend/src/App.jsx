@@ -44,8 +44,8 @@ function App() {
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
-                <Route path="/contact" element={<ContactUs />} />
-                <Route path="/about" element={<AboutUs />} />
+                <Route path="/contact-us" element={<ContactUs />} />
+                <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/return-refund" element={<ReturnRefund />} />
                 <Route path="/account" element={<AccountOverview />} />
                 <Route path="/account/orders" element={<MyOrders />} />

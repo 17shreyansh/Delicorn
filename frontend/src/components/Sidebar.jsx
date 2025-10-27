@@ -1,6 +1,12 @@
 import React from 'react';
 import { Menu } from 'antd';
-import { UserOutlined, ShoppingOutlined, HeartOutlined, EnvironmentOutlined, UndoOutlined } from '@ant-design/icons';
+import {
+  UserOutlined,
+  ShoppingOutlined,
+  HeartOutlined,
+  EnvironmentOutlined,
+  UndoOutlined,
+} from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Sidebar = () => {
@@ -11,7 +17,7 @@ const Sidebar = () => {
     {
       key: '/account',
       icon: <UserOutlined />,
-      label: 'Account Overview',
+      label: 'Profile Details',
     },
     {
       key: '/account/orders',
@@ -40,17 +46,12 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="account-sidebar" style={{ background: '#f5f5f5', minHeight: '500px' }}>
+    <div className="account-sidebar">
       <Menu
-        mode="vertical"
+        mode="inline"
         selectedKeys={[location.pathname]}
         items={menuItems}
         onClick={handleMenuClick}
-        style={{ 
-          background: 'transparent',
-          border: 'none',
-          padding: '20px 0'
-        }}
       />
     </div>
   );

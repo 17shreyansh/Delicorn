@@ -1,136 +1,185 @@
-import React from 'react';
-import { Layout, Row, Col, Typography, Form, Input, Button, Card, Space } from 'antd';
-import { PhoneOutlined, MailOutlined, EnvironmentOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import React from "react";
+import { Layout, Row, Col, Typography, Form, Input, Button } from "antd";
 
 const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 const ContactUs = () => {
   const [form] = Form.useForm();
 
   const handleSubmit = (values) => {
-    console.log('Contact form submitted:', values);
+    console.log("Form Submitted:", values);
     form.resetFields();
   };
 
   return (
-    <Layout style={{ marginTop: '64px' }}>
-      <Content style={{ padding: '40px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <Title level={1}>Contact Us</Title>
-            <Paragraph style={{ fontSize: '18px', color: '#666' }}>
-              We'd love to hear from you. Get in touch with us.
-            </Paragraph>
-          </div>
+    <Layout style={{ backgroundColor: "#f6f8f7" }}>
+      <Content
+        style={{
+          maxWidth: "1100px",
+          margin: "0 auto",
+          padding: "60px 20px 100px",
+          fontFamily: "'Josefin Sans', sans-serif",
+          color: "#0b3b35",
+        }}
+      >
+        {/* Page Title */}
+        <Title
+          level={3}
+          style={{
+            textAlign: "center",
+            marginBottom: "50px",
+            fontWeight: 500,
+            letterSpacing: "0.5px",
+            color: "#0b3b35",
+          }}
+        >
+          Contact Us
+        </Title>
 
-          <Row gutter={[40, 40]}>
-            <Col xs={24} lg={12}>
-              <Card title="Send us a Message">
-                <Form form={form} layout="vertical" onFinish={handleSubmit}>
-                  <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={12}>
-                      <Form.Item name="firstName" label="First Name" rules={[{ required: true }]}>
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                      <Form.Item name="lastName" label="Last Name" rules={[{ required: true }]}>
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                      <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                      <Form.Item name="phone" label="Phone Number">
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                      <Form.Item name="subject" label="Subject" rules={[{ required: true }]}>
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                      <Form.Item name="message" label="Message" rules={[{ required: true }]}>
-                        <Input.TextArea rows={6} />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                      <Button type="primary" htmlType="submit" size="large" block>
-                        Send Message
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form>
-              </Card>
-            </Col>
+        {/* Main Grid */}
+        <Row
+          gutter={[40, 40]}
+          style={{
+            backgroundColor: "#f1f5f4",
+            borderRadius: "6px",
+            overflow: "hidden",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+          }}
+        >
+          {/* LEFT SIDE: Address & Support Info */}
+          <Col
+            xs={24}
+            md={10}
+            style={{
+              backgroundColor: "#f6f8f7",
+              padding: "50px 40px",
+              borderRight: "1px solid #e0e0e0",
+              textAlign: "center",
+            }}
+          >
+            <Title level={4} style={{ marginBottom: "20px", color: "#0b3b35" }}>
+              Address
+            </Title>
+            <Text style={{ display: "block", lineHeight: "1.8", marginBottom: "30px" }}>
+              <strong>[Brand Name]</strong> Jewellery Studio <br />
+              123, MG Road, Connaught Place <br />
+              New Delhi - 110001
+            </Text>
 
-            <Col xs={24} lg={12}>
-              <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Card>
-                  <Space>
-                    <PhoneOutlined style={{ fontSize: '24px', color: '#667eea' }} />
-                    <div>
-                      <Title level={4} style={{ margin: 0 }}>Phone</Title>
-                      <Paragraph style={{ margin: 0 }}>+91 9876543210</Paragraph>
-                    </div>
-                  </Space>
-                </Card>
+            <Title level={4} style={{ marginBottom: "20px", color: "#0b3b35" }}>
+              Customer Support
+            </Title>
+            <Text style={{ display: "block", lineHeight: "1.8" }}>
+              Phone: <strong>+91 98765 43210</strong> <br />
+              Email: <strong>support@[brandname].com</strong> <br />
+              Live Chat: Available 10 AM – 8 PM (Mon–Sat)
+            </Text>
+          </Col>
 
-                <Card>
-                  <Space>
-                    <MailOutlined style={{ fontSize: '24px', color: '#667eea' }} />
-                    <div>
-                      <Title level={4} style={{ margin: 0 }}>Email</Title>
-                      <Paragraph style={{ margin: 0 }}>info@delicons.com</Paragraph>
-                    </div>
-                  </Space>
-                </Card>
+          {/* RIGHT SIDE: Contact Form */}
+          <Col
+            xs={24}
+            md={14}
+            style={{
+              backgroundColor: "#f9fcfb",
+              padding: "50px 60px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSubmit}
+              style={{
+                width: "100%",
+                maxWidth: "500px",
+              }}
+            >
+              <Form.Item
+                name="name"
+                rules={[{ required: true, message: "Please enter your name" }]}
+              >
+                <Input
+                  placeholder="Name"
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "4px",
+                    border: "1px solid #d9d9d9",
+                    fontFamily: "'Josefin Sans', sans-serif",
+                  }}
+                />
+              </Form.Item>
 
-                <Card>
-                  <Space>
-                    <EnvironmentOutlined style={{ fontSize: '24px', color: '#667eea' }} />
-                    <div>
-                      <Title level={4} style={{ margin: 0 }}>Address</Title>
-                      <Paragraph style={{ margin: 0 }}>
-                        123 Jewelry Street<br />
-                        Mumbai, Maharashtra 400001<br />
-                        India
-                      </Paragraph>
-                    </div>
-                  </Space>
-                </Card>
+              <Form.Item
+                name="email"
+                rules={[
+                  { required: true, message: "Please enter your email" },
+                  { type: "email", message: "Invalid email format" },
+                ]}
+              >
+                <Input
+                  placeholder="Email"
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "4px",
+                    border: "1px solid #d9d9d9",
+                    fontFamily: "'Josefin Sans', sans-serif",
+                  }}
+                />
+              </Form.Item>
 
-                <Card>
-                  <Space>
-                    <ClockCircleOutlined style={{ fontSize: '24px', color: '#667eea' }} />
-                    <div>
-                      <Title level={4} style={{ margin: 0 }}>Business Hours</Title>
-                      <Paragraph style={{ margin: 0 }}>
-                        Monday - Saturday: 10:00 AM - 8:00 PM<br />
-                        Sunday: 11:00 AM - 6:00 PM
-                      </Paragraph>
-                    </div>
-                  </Space>
-                </Card>
-              </Space>
-            </Col>
-          </Row>
+              <Form.Item name="phone">
+                <Input
+                  placeholder="Phone"
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "4px",
+                    border: "1px solid #d9d9d9",
+                    fontFamily: "'Josefin Sans', sans-serif",
+                  }}
+                />
+              </Form.Item>
 
-          <div style={{ marginTop: '60px' }}>
-            <Card title="Find Us">
-              <div style={{ height: '400px', background: '#f0f0f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Paragraph style={{ color: '#666', fontSize: '16px' }}>
-                  Google Maps Integration Placeholder
-                </Paragraph>
-              </div>
-            </Card>
-          </div>
-        </div>
+              <Form.Item
+                name="message"
+                rules={[{ required: true, message: "Please enter your message" }]}
+              >
+                <Input.TextArea
+                  rows={5}
+                  placeholder="Message"
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "4px",
+                    border: "1px solid #d9d9d9",
+                    fontFamily: "'Josefin Sans', sans-serif",
+                    resize: "none",
+                  }}
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  htmlType="submit"
+                  style={{
+                    backgroundColor: "#0b3b35",
+                    color: "white",
+                    padding: "10px 30px",
+                    border: "none",
+                    borderRadius: "4px",
+                    fontSize: "15px",
+                    fontFamily: "'Josefin Sans', sans-serif",
+                    cursor: "pointer",
+                  }}
+                >
+                  Submit
+                </Button>
+              </Form.Item>
+            </Form>
+          </Col>
+        </Row>
       </Content>
     </Layout>
   );

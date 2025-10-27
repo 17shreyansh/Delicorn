@@ -212,7 +212,7 @@ const Navbar = () => {
             <Button
               type="text"
               icon={<HeartOutlined style={{ color: '#0d4b4b', fontSize: isMobile ? '16px' : '18px' }} />}
-              onClick={() => navigate('/wishlist')}
+              onClick={() => navigate('/account/wishlist')}
               style={{ padding: isMobile ? '4px' : '8px' }}
             />
             <Badge count={getCartItemsCount()} size="small">

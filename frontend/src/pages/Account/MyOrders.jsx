@@ -1,103 +1,93 @@
-import React from 'react';
-import { Layout, Row, Col, Card, Typography, Tag, Button, Space } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
-import Sidebar from '../../components/Sidebar';
+import React, { useState } from 'react';
+import { Typography, Button, Card, Row, Col } from 'antd';
+import AccountLayout from '../../components/AccountLayout';
+import AccountContent from '../../components/AccountContent';
 
-const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const MyOrders = () => {
+  const [activeTab, setActiveTab] = useState('Ordered');
+
   const orders = [
     {
-      id: 'ORD001',
-      date: '2024-01-15',
-      status: 'Delivered',
-      total: 2500,
-      items: 2,
-      image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=100'
+      id: 1,
+      name: 'Streamlined Sparkle Diamond Bangle',
+      size: '45 * 55 MM',
+      weight: '9.616 g',
+      qty: 1,
+      date: 'Order Placed - 18 Sept',
+      image: 'https://via.placeholder.com/80',
     },
     {
-      id: 'ORD002',
-      date: '2024-01-10',
-      status: 'Shipped',
-      total: 1800,
-      items: 1,
-      image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=100'
+      id: 2,
+      name: 'Streamlined Sparkle Diamond Bangle',
+      size: '45 * 55 MM',
+      weight: '9.616 g',
+      qty: 1,
+      date: 'Shipped - 20 Sept',
+      image: 'https://via.placeholder.com/80',
     },
-    {
-      id: 'ORD003',
-      date: '2024-01-05',
-      status: 'Processing',
-      total: 3200,
-      items: 3,
-      image: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=100'
-    }
   ];
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Delivered': return 'green';
-      case 'Shipped': return 'blue';
-      case 'Processing': return 'orange';
-      default: return 'default';
-    }
-  };
+  const tabs = ['Ordered', 'Track Order', 'Delivered', 'Order History'];
 
   return (
-    <Layout style={{ marginTop: '64px' }}>
-      <Content style={{ padding: '40px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Title level={2} style={{ marginBottom: '30px' }}>My Orders</Title>
-          
-          <Row gutter={[32, 32]}>
-            <Col xs={24} md={6}>
-              <Sidebar />
-            </Col>
-            
-            <Col xs={24} md={18}>
-              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                {orders.map(order => (
-                  <Card key={order.id}>
-                    <Row gutter={[16, 16]} align="middle">
-                      <Col xs={24} sm={4}>
-                        <img
-                          src={order.image}
-                          alt="Order"
-                          style={{ 
-                            width: '80px', 
-                            height: '80px', 
-                            objectFit: 'cover',
-                            borderRadius: '8px'
-                          }}
-                        />
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <Space direction="vertical" size="small">
-                          <Text strong>Order #{order.id}</Text>
-                          <Text type="secondary">Placed on {order.date}</Text>
-                          <Text>{order.items} item(s)</Text>
-                          <Tag color={getStatusColor(order.status)}>{order.status}</Tag>
-                        </Space>
-                      </Col>
-                      <Col xs={24} sm={4}>
-                        <Text strong style={{ fontSize: '16px' }}>
-                          ₹{order.total.toLocaleString()}
-                        </Text>
-                      </Col>
-                      <Col xs={24} sm={4}>
-                        <Button icon={<EyeOutlined />}>
-                          View Details
-                        </Button>
-                      </Col>
-                    </Row>
-                  </Card>
-                ))}
-              </Space>
-            </Col>
-          </Row>
+    <AccountLayout title="My Orders">
+      <AccountContent>
+        <div className="account-tabs">
+          {tabs.map((tab) => (
+            <Button
+              key={tab}
+              type={activeTab === tab ? 'primary' : 'default'}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </Button>
+          ))}
         </div>
-      </Content>
-    </Layout>
+
+        <div>
+          {orders.map((order) => (
+            <Card key={order.id} className="account-card" bordered={false}>
+              <Row gutter={[16, 16]} align="middle">
+                <Col xs={6} sm={4} md={3}>
+                  <img
+                    src={order.image}
+                    alt="Product"
+                    style={{
+                      width: '100%',
+                      maxWidth: '60px',
+                      height: '60px',
+                      borderRadius: '6px',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </Col>
+                <Col xs={18} sm={14} md={15}>
+                  <Text strong style={{ display: 'block', color: '#114D4D', marginBottom: '4px' }}>
+                    {order.name}
+                  </Text>
+                  <Text type="secondary" style={{ display: 'block', fontSize: '13px' }}>
+                    Size: {order.size} | Weight: {order.weight}
+                  </Text>
+                  <Text type="secondary" style={{ display: 'block', fontSize: '12px' }}>
+                    {order.date}
+                  </Text>
+                </Col>
+                <Col xs={12} sm={3} md={3} style={{ textAlign: 'center' }}>
+                  <Text>Qty: {order.qty}</Text>
+                </Col>
+                <Col xs={12} sm={3} md={3} style={{ textAlign: 'right' }}>
+                  <Button type="link" style={{ color: '#114D4D', padding: 0 }}>
+                    View details
+                  </Button>
+                </Col>
+              </Row>
+            </Card>
+          ))}
+        </div>
+      </AccountContent>
+    </AccountLayout>
   );
 };
 
