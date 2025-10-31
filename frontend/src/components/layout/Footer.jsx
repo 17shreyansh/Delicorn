@@ -6,7 +6,7 @@ import {
   TwitterOutlined,
   YoutubeOutlined,
 } from "@ant-design/icons";
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 
 const { Footer: AntFooter } = Layout;
 const { Title, Text } = Typography;

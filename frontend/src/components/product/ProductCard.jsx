@@ -2,8 +2,8 @@ import React from 'react';
 import { Card, Button, Typography, Space, Rate } from 'antd';
 import { HeartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { useUser } from '../context/UserContext';
+import { useCart } from '../../context/CartContext';
+import { useUser } from '../../context/UserContext';
 
 const { Meta } = Card;
 const { Text } = Typography;
@@ -13,6 +13,9 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useUser();
 
+  // Return null if product is not available
+  if (!product) return null;
+
   const handleAddToCart = (e) => {
     e.stopPropagation();
     addToCart(product);
@@ -20,16 +23,15 @@ const ProductCard = ({ product }) => {
 
   const handleWishlist = (e) => {
     e.stopPropagation();
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
+    if (isInWishlist(product._id)) {
+      removeFromWishlist(product._id);
     } else {
       addToWishlist(product);
     }
   };
 
   const handleViewDetails = () => {
-    console.log('Navigating to product:', product.id);
-    navigate(`/product/${product.id}`);
+    navigate(`/product/${product.slug}`);
   };
 
   // Calculate discount percentage if originalPrice exists
@@ -60,7 +62,7 @@ const ProductCard = ({ product }) => {
         }}>
           <img
             alt={product.name}
-            src={product.image}
+            src={product.mainImage ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${product.mainImage}` : product.image || '/placeholder-image.jpg'}
             style={{
               width: '100%',
               height: '100%',
@@ -76,8 +78,8 @@ const ProductCard = ({ product }) => {
           }}>
             <HeartOutlined
               style={{
-                color: isInWishlist(product.id) ? '#ff4d4f' : '#333', // Dark icon as in image
-                fontSize: '24px', // Slightly larger icon
+                color: isInWishlist(product._id) ? '#ff4d4f' : '#333',
+                fontSize: '24px',
               }}
               onClick={handleWishlist}
             />
@@ -91,7 +93,7 @@ const ProductCard = ({ product }) => {
         <Button
           type="primary"
           onClick={handleAddToCart}
-          disabled={!product.inStock}
+          disabled={!product.isActive || !product.inStock}
           style={{
             background: '#0a5d5d', // Dark teal color from image
             borderColor: '#0a5d5d',
@@ -101,7 +103,7 @@ const ProductCard = ({ product }) => {
             padding: '8px 16px',
           }}
         >
-          {product.inStock ? 'Add to cart' : 'Out of Stock'}
+          {(product.isActive && product.inStock) ? 'Add to cart' : 'Out of Stock'}
         </Button>
       </div>
 
@@ -121,12 +123,12 @@ const ProductCard = ({ product }) => {
             {/* Price Line (matches image) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <Text strong style={{ fontSize: '18px', color: '#333' }}>
-                ₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                ₹{(product.price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </Text>
               {product.originalPrice && (
                 <>
                   <Text delete type="secondary" style={{ fontSize: '16px' }}>
-                    ₹{product.originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹{(product.originalPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </Text>
                   <Text style={{ fontSize: '16px', color: '#388e3c' /* Green for discount */ }}>
                     ({discountPercent}%)

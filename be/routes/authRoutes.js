@@ -13,7 +13,8 @@ const {
     resendVerification,
     deactivateAccount,
     reactivateAccount,
-    checkAdmin
+    checkAdmin,
+    clearCookies
 } = require("../controllers/authController");
 const { protect, isAdmin } = require("../middleware/authMiddleware"); // Ensure middleware is correct
 
@@ -44,7 +45,9 @@ router.put("/profile", protect, updateProfile);
 // Change current user's password
 router.put("/change-password", protect, changePassword);
 // Log user out (clears cookie)
-router.post("/logout", protect, logout);
+router.post("/logout", logout);
+// Clear invalid cookies
+router.post("/clear-cookies", clearCookies);
 // Deactivate current user's account
 router.post("/deactivate-account", protect, deactivateAccount);
 

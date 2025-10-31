@@ -13,6 +13,10 @@ const {
 } = require('../controllers/supportController');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 
+// Admin routes (must come before parameterized routes)
+router.route('/admin')
+  .get(protect, isAdmin, getAllTickets);
+
 // User routes
 router.route('/')
   .post(protect, createTicket)
@@ -28,10 +32,6 @@ router.route('/:id/messages')
 
 router.route('/:id/close')
   .put(protect, closeTicket);
-
-// Admin routes
-router.route('/admin/all')
-  .get(protect, isAdmin, getAllTickets);
 
 router.route('/:id/assign')
   .put(protect, isAdmin, assignTicket);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout, Row, Col, Typography } from 'antd';
-import Sidebar from './Sidebar';
+import { Sidebar } from './common';
 import '../styles/account.css';
 
 const { Content } = Layout;

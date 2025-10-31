@@ -12,6 +12,7 @@ import {
   InputNumber,
   Divider,
   Steps,
+  Empty,
 } from "antd";
 import {
   DeleteOutlined,
@@ -19,6 +20,8 @@ import {
   PlusOutlined,
   ShoppingOutlined,
 } from "@ant-design/icons";
+import { useCart } from '../context/CartContext';
+import { Link } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 const { Step } = Steps;
@@ -28,34 +31,31 @@ const CartCheckout = () => {
   const [coupon, setCoupon] = useState("");
   const [address, setAddress] = useState("home");
   const [payment, setPayment] = useState("upi");
+  
+  const { cartItems, updateQuantity, removeFromCart, getCartTotal, getCartItemsCount } = useCart();
 
-  // Demo data
-  const cartItems = [
-    {
-      id: 1,
-      name: "Streamlined Sparkle Diamond Bangle",
-      price: 8900,
-      size: "45 * 55 MM",
-      weight: "9.616 g",
-      image:
-        "https://via.placeholder.com/80x80.png?text=Bangle",
-    },
-    {
-      id: 2,
-      name: "Streamlined Sparkle Diamond Bangle",
-      price: 8900,
-      size: "45 * 55 MM",
-      weight: "9.616 g",
-      image:
-        "https://via.placeholder.com/80x80.png?text=Bangle",
-    },
-  ];
-
-  const subtotal = 2450;
+  const subtotal = getCartTotal();
   const shipping = 0;
-  const couponApplied = 200;
-  const walletUsed = 500;
+  const couponApplied = 0;
+  const walletUsed = 0;
   const total = subtotal - couponApplied - walletUsed;
+
+  if (cartItems.length === 0) {
+    return (
+      <Layout style={{ background: "#fff", minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="Your cart is empty"
+        >
+          <Link to="/">
+            <Button type="primary" style={{ background: '#0d4b4b', borderColor: '#0d4b4b' }}>
+              Continue Shopping
+            </Button>
+          </Link>
+        </Empty>
+      </Layout>
+    );
+  }
 
   const styles = {
     page: { marginTop: 80, padding: "20px 60px", fontFamily: "'Josefin Sans', sans-serif", background: "#fff" },
@@ -126,12 +126,12 @@ const CartCheckout = () => {
           <Row gutter={[32, 32]}>
             <Col xs={24} lg={16}>
               {cartItems.map((item, i) => (
-                <Card key={i} style={styles.card}>
+                <Card key={item.id || i} style={styles.card}>
                   <Row align="middle" gutter={[16, 16]}>
                     <Col span={4}>
                       <img
-                        src={item.image}
-                        alt=""
+                        src={item.image || item.mainImage || 'https://via.placeholder.com/80x80.png?text=Product'}
+                        alt={item.name}
                         style={{
                           width: "100%",
                           borderRadius: 8,
@@ -144,23 +144,29 @@ const CartCheckout = () => {
                         {item.name}
                       </Title>
                       <Text type="secondary">
-                        Size: {item.size} | Weight: {item.weight}
+                        Product Type: {item.productType || 'N/A'}
                       </Text>
                       <br />
                       <Text strong>₹{item.price}</Text>
                     </Col>
                     <Col span={4} style={{ textAlign: "center" }}>
                       <Text>Quantity</Text>
-                      <InputNumber min={1} max={5} defaultValue={1} />
+                      <InputNumber 
+                        min={1} 
+                        max={10} 
+                        value={item.quantity || 1}
+                        onChange={(value) => updateQuantity(item.id, value)}
+                      />
                     </Col>
                     <Col span={6} style={{ textAlign: "right" }}>
-                      <Text strong>₹{item.price}</Text>
+                      <Text strong>₹{(item.price * (item.quantity || 1)).toFixed(2)}</Text>
                       <br />
                       <Button
                         type="text"
                         danger
                         icon={<DeleteOutlined />}
                         style={{ marginTop: 5 }}
+                        onClick={() => removeFromCart(item.id)}
                       >
                         Remove
                       </Button>

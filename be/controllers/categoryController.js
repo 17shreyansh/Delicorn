@@ -1,11 +1,12 @@
 const Category = require("../models/Category");
 const Product = require("../models/Product"); // Import Product model to handle cascade delete
+const { uploadService } = require('./uploadController');
 
 exports.createCategory = async (req, res) => {
   try {
     const category = new Category(req.body);
     await category.save();
-    res.status(201).json(category);
+    res.status(201).json({ success: true, data: category });
   } catch (err) {
     if (err.code === 11000) { // Duplicate key error (for unique name/slug)
       return res.status(400).json({ error: "Category name or slug already exists." });
@@ -17,11 +18,15 @@ exports.createCategory = async (req, res) => {
 // Modified to fetch categories with parent populated and potentially structured
 exports.getCategories = async (req, res) => {
   try {
-    // You can fetch all categories and build the tree on the frontend,
-    // or fetch top-level and then children as needed.
-    // For a comprehensive list with parent details:
-    const categories = await Category.find().populate('parent', 'name slug').sort({ name: 1 });
-    res.json(categories);
+    const { productType } = req.query;
+    let query = {};
+    
+    if (productType) {
+      query.productType = productType;
+    }
+    
+    const categories = await Category.find(query).sort({ name: 1 });
+    res.json({ success: true, data: categories });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -29,15 +34,24 @@ exports.getCategories = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
   try {
+    // Get existing category to check for old image
+    const existingCategory = await Category.findById(req.params.id);
+    if (!existingCategory) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
     // Ensure slug is updated if name changes or if explicitly provided
     if (req.body.name) {
       req.body.slug = req.body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-*|-*$/g, "");
     }
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+
+    // Delete old image if new image is provided
+    if (req.body.image && existingCategory.image && req.body.image !== existingCategory.image) {
+      await uploadService.deleteFileByUrl(existingCategory.image);
     }
-    res.json(category);
+
+    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    res.json({ success: true, data: category });
   } catch (err) {
     if (err.code === 11000) {
       return res.status(400).json({ error: "Category name or slug already exists." });
@@ -68,6 +82,12 @@ exports.deleteCategory = async (req, res) => {
     if (!result) {
       return res.status(404).json({ message: "Category not found" });
     }
+
+    // Delete category image if exists
+    if (result.image) {
+      await uploadService.deleteFileByUrl(result.image);
+    }
+
     res.json({ message: "Category and associated products updated/deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -38,7 +38,7 @@ const ProductList = ({ products, title }) => {
 
         <Row gutter={[24, 24]}>
           {currentProducts.map(product => (
-            <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
+            <Col xs={24} sm={12} md={8} lg={6} key={product._id || product.id}>
               <ProductCard product={product} />
             </Col>
           ))}

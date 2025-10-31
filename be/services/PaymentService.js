@@ -3,17 +3,20 @@ const crypto = require('crypto');
 
 class PaymentService {
   constructor() {
-    // Ensure that RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are loaded from environment variables
-    // and are available when this service is instantiated.
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      console.error('CRITICAL ERROR: Razorpay API keys are not defined in environment variables.');
-      throw new Error('Razorpay API keys are missing. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
+    // Check if Razorpay keys are available
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET || 
+        process.env.RAZORPAY_KEY_ID === 'your_razorpay_key_id' || 
+        process.env.RAZORPAY_KEY_SECRET === 'your_razorpay_key_secret') {
+      console.warn('WARNING: Razorpay API keys are not configured. Payment functionality will be disabled.');
+      this.isConfigured = false;
+      this.razorpay = null;
+    } else {
+      this.isConfigured = true;
+      this.razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
     }
-
-    this.razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
   }
 
   /**
@@ -24,6 +27,13 @@ class PaymentService {
    * @returns {object} - Object containing success status, Razorpay order details, or error.
    */
   async createRazorpayOrder(amountInPaise, orderNumber, userEmail) {
+    if (!this.isConfigured) {
+      return {
+        success: false,
+        error: 'Razorpay is not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.'
+      };
+    }
+
     try {
       // Amount should already be in paise from the controller
       if (!Number.isInteger(amountInPaise) || amountInPaise <= 0) {
@@ -84,6 +94,11 @@ class PaymentService {
    * @returns {boolean} - True if signature is valid, false otherwise
    */
   verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature) {
+    if (!this.isConfigured) {
+      console.warn('Razorpay not configured - signature verification skipped');
+      return false;
+    }
+
     try {
       const body = `${razorpayOrderId}|${razorpayPaymentId}`;
       const expectedSignature = crypto
@@ -112,6 +127,13 @@ class PaymentService {
    * @returns {Promise<object>} - Object containing payment verification result
    */
   async verifyPayment(paymentId) {
+    if (!this.isConfigured) {
+      return {
+        success: false,
+        error: 'Razorpay is not configured'
+      };
+    }
+
     try {
       const payment = await this.razorpay.payments.fetch(paymentId);
       
@@ -137,6 +159,13 @@ class PaymentService {
    * @returns {object} - Object containing success status and payment details, or error.
    */
   async getPaymentDetails(paymentId) {
+    if (!this.isConfigured) {
+      return {
+        success: false,
+        error: 'Razorpay is not configured'
+      };
+    }
+
     try {
       console.log(`[Razorpay] Fetching payment details for ID: ${paymentId}`);
       const payment = await this.razorpay.payments.fetch(paymentId);
@@ -162,6 +191,13 @@ class PaymentService {
    * @returns {object} - Object containing success status, refund ID, and status, or error.
    */
   async refundPayment(paymentId, amount, reason = 'Order cancelled') {
+    if (!this.isConfigured) {
+      return {
+        success: false,
+        error: 'Razorpay is not configured'
+      };
+    }
+
     try {
       const amountInPaise = Math.round(amount * 100); // Amount in paise
       console.log(`[Razorpay] Initiating refund for Payment ID: ${paymentId}, Amount: ₹${amount}, Reason: ${reason}`);

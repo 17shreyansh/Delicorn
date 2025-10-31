@@ -26,9 +26,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     // Send the response with the token in a cookie and user data
     res.status(statusCode).cookie('token', token, options).json({
         success: true,
-        // Send back essential user info, using getSafeData for a clean response
-        // Explicitly include isEmailVerified so frontend can check it
-        data: {
+        user: {
             ...user.getSafeData(),
             isEmailVerified: user.isEmailVerified
         }
@@ -180,12 +178,15 @@ exports.getProfile = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
     // Allowed fields to update
-    const { name, phone, address } = req.body;
+    const { name, phone, address, email, gender, dateOfBirth } = req.body;
     const fieldsToUpdate = {};
 
     if (name) fieldsToUpdate.name = name;
     if (phone) fieldsToUpdate.phone = phone;
     if (address) fieldsToUpdate.address = address; // This will overwrite the whole address object
+    if (email) fieldsToUpdate.email = email;
+    if (gender) fieldsToUpdate.gender = gender;
+    if (dateOfBirth) fieldsToUpdate.dateOfBirth = dateOfBirth;
 
     try {
         const user = await User.findByIdAndUpdate(
@@ -470,16 +471,30 @@ exports.resendVerification = async (req, res) => {
 
 // @desc    Log user out / Clear cookie
 // @route   POST /api/auth/logout
-// @access  Private
+// @access  Public
 exports.logout = (req, res) => {
-    res.cookie('token', 'none', {
-        expires: new Date(Date.now() + 10 * 1000), // Expire cookie almost immediately
+    res.clearCookie('token', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        secure: false,
+        sameSite: 'Lax',
+        path: '/'
     });
 
     res.status(200).json({ success: true, message: 'Logged out successfully.' });
+};
+
+// @desc    Clear invalid cookies
+// @route   POST /api/auth/clear-cookies
+// @access  Public
+exports.clearCookies = (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'Lax',
+        path: '/'
+    });
+
+    res.status(200).json({ success: true, message: 'Cookies cleared successfully.' });
 };
 
 // @desc    Deactivate user account

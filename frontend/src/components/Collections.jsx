@@ -89,17 +89,15 @@ export default function SignatureCollections() {
                 >
                   <Card
                     style={cardStyle}
-                    bodyStyle={{ padding: 0, borderRadius: "0px" }}
-                    styles={{
-                      cover: {
-                        borderRadius: "0px",
-                      }
+                    styles={{ 
+                      body: { padding: 0, borderRadius: "0px" },
+                      cover: { borderRadius: "0px" }
                     }}
                     cover={
                       <img
                         alt={item}
                         src={col.images[i]}
-                        sty le={{
+                        style={{
                           width: "100%",
                           aspectRatio: "1",
                           objectFit: "cover",

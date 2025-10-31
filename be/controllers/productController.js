@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
 const mongoose = require('mongoose');
+const { uploadService } = require('./uploadController');
 
 // @desc    Create a new product
 // @route   POST /api/products
@@ -9,13 +10,7 @@ exports.createProduct = async (req, res) => {
     const product = new Product(req.body);
     await product.save();
     
-    // Populate brand and categories for response
-    await product.populate([
-      { path: 'brand', select: 'name logo' },
-      { path: 'categories', select: 'name' }
-    ]);
-    
-    res.status(201).json(product);
+    res.status(201).json({ success: true, data: product });
   } catch (err) {
     console.error("Error creating product:", err);
     res.status(400).json({ error: err.message });
@@ -29,6 +24,7 @@ exports.getProducts = async (req, res) => {
   try {
     const { 
       category, 
+      productType,
       brand, 
       material, 
       color, 
@@ -38,14 +34,19 @@ exports.getProducts = async (req, res) => {
       maxPrice, 
       sortBy, 
       search,
-      inStock 
+      inStock,
+      featured 
     } = req.query;
     
-    let query = {};
+    let query = { isActive: true };
 
-    if (category) query.categories = { $in: [category] };
+    // Product type filter (ashta-dhatu or fashion-jewelry)
+    if (productType) query.productType = productType;
+    if (category) query.productType = category; // Frontend compatibility
+    
     if (brand) query.brand = brand;
     if (gender) query.gender = gender;
+    if (featured === 'true') query.isFeatured = true;
     
     // Handle multiple selections using $in operator
     if (material) {
@@ -80,44 +81,40 @@ exports.getProducts = async (req, res) => {
       const searchTerms = search.split(' ').filter(term => term.length > 0);
       
       if (searchTerms.length > 0) {
-        // Create an array of conditions for each search term
         const searchConditions = searchTerms.map(term => ({
           $or: [
             { name: new RegExp(term, 'i') },
             { description: new RegExp(term, 'i') },
             { material: new RegExp(term, 'i') },
-            { 'brand.name': new RegExp(term, 'i') },
-            { 'categories.name': new RegExp(term, 'i') },
+            { productType: new RegExp(term, 'i') },
             { gender: new RegExp(term, 'i') },
-            { tags: new RegExp(term, 'i') }
+
           ]
         }));
         
-        // Use $and to require all search terms to match
         query.$and = searchConditions;
       }
     }
 
-    let productsQuery = Product.find(query)
-      .populate("categories", "name")
-      .populate("brand", "name logo");
+    let productsQuery = Product.find(query);
 
     // Sorting
     if (sortBy === "priceAsc") productsQuery = productsQuery.sort({ price: 1 });
     else if (sortBy === "priceDesc") productsQuery = productsQuery.sort({ price: -1 });
     else if (sortBy === "nameAsc") productsQuery = productsQuery.sort({ name: 1 });
-    else if (sortBy === "stockDesc") productsQuery = productsQuery.sort({ totalStock: -1 });
+    else if (sortBy === "rating") productsQuery = productsQuery.sort({ rating: -1 });
+    else if (sortBy === "featured") productsQuery = productsQuery.sort({ isFeatured: -1, createdAt: -1 });
     else productsQuery = productsQuery.sort({ createdAt: -1 });
 
     const products = await productsQuery.exec();
-    res.json(products);
+    res.json({ success: true, data: products });
   } catch (err) {
     console.error("Error fetching products:", err);
     res.status(500).json({ error: "Failed to fetch products" });
   }
 };
 
-// @desc    Get single product by ID or slug
+// @desc    Get single product by slug or ID (with redirect)
 // @route   GET /api/products/:identifier
 // @access  Public
 exports.getProductById = async (req, res) => {
@@ -125,23 +122,88 @@ exports.getProductById = async (req, res) => {
     const { identifier } = req.params;
     let product;
 
-    if (mongoose.Types.ObjectId.isValid(identifier)) {
-      product = await Product.findById(identifier)
-        .populate("categories", "name")
-        .populate("brand", "name logo");
-    } else {
-      product = await Product.findOne({ slug: identifier })
-        .populate("categories", "name")
-        .populate("brand", "name logo");
+    // First try to find by slug
+    product = await Product.findOne({ slug: identifier, isActive: true });
+    
+    // If not found and identifier looks like an ObjectId, try finding by ID
+    if (!product && mongoose.Types.ObjectId.isValid(identifier)) {
+      product = await Product.findOne({ _id: identifier, isActive: true });
+      if (product) {
+        // Redirect to slug-based URL
+        return res.redirect(301, `/api/products/${product.slug}`);
+      }
     }
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    res.json(product);
+    
+    res.json({ success: true, data: product });
   } catch (err) {
     console.error("Error fetching product:", err);
     res.status(500).json({ error: "Failed to fetch product" });
+  }
+};
+
+// @desc    Get products by type (ashta-dhatu or fashion-jewelry)
+// @route   GET /api/products/type/:type
+// @access  Public
+exports.getProductsByType = async (req, res) => {
+  try {
+    const { type } = req.params;
+    const { limit = 20, sortBy = 'createdAt' } = req.query;
+    
+    if (!['ashta-dhatu', 'fashion-jewelry'].includes(type)) {
+      return res.status(400).json({ message: "Invalid product type" });
+    }
+
+    let query = Product.find({ productType: type, isActive: true })
+      .limit(parseInt(limit));
+
+    if (sortBy === 'featured') query = query.sort({ isFeatured: -1, createdAt: -1 });
+    else if (sortBy === 'price') query = query.sort({ price: 1 });
+    else if (sortBy === 'rating') query = query.sort({ rating: -1 });
+    else query = query.sort({ createdAt: -1 });
+
+    const products = await query.exec();
+    res.json({ success: true, data: products });
+  } catch (err) {
+    console.error("Error fetching products by type:", err);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+};
+
+// @desc    Get related products
+// @route   GET /api/products/:identifier/related
+// @access  Public
+exports.getRelatedProducts = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    const { limit = 4 } = req.query;
+    
+    let product;
+    // Try to find by slug first, then by ID
+    product = await Product.findOne({ slug: identifier, isActive: true });
+    if (!product && mongoose.Types.ObjectId.isValid(identifier)) {
+      product = await Product.findOne({ _id: identifier, isActive: true });
+    }
+    
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const relatedProducts = await Product.find({
+      _id: { $ne: product._id },
+      productType: product.productType,
+      isActive: true
+    })
+    .limit(parseInt(limit))
+    .sort({ rating: -1, createdAt: -1 });
+
+    res.json({ success: true, data: relatedProducts });
+  } catch (err) {
+    console.error("Error fetching related products:", err);
+    res.status(500).json({ error: "Failed to fetch related products" });
   }
 };
 
@@ -150,18 +212,35 @@ exports.getProductById = async (req, res) => {
 // @access  Private/Admin
 exports.updateProduct = async (req, res) => {
   try {
+    // Get existing product to check for old images
+    const existingProduct = await Product.findById(req.params.id);
+    if (!existingProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Delete old main image if new one is provided
+    if (req.body.mainImage && existingProduct.mainImage && req.body.mainImage !== existingProduct.mainImage) {
+      await uploadService.deleteFileByUrl(existingProduct.mainImage);
+    }
+
+    // Delete old gallery images if new ones are provided
+    if (req.body.galleryImages && existingProduct.galleryImages) {
+      const newGalleryUrls = req.body.galleryImages || [];
+      const oldGalleryUrls = existingProduct.galleryImages || [];
+      
+      for (const oldUrl of oldGalleryUrls) {
+        if (!newGalleryUrls.includes(oldUrl)) {
+          await uploadService.deleteFileByUrl(oldUrl);
+        }
+      }
+    }
+
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    }).populate([
-      { path: 'brand', select: 'name logo' },
-      { path: 'categories', select: 'name' }
-    ]);
+    });
     
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-    res.json(product);
+    res.json({ success: true, data: product });
   } catch (err) {
     console.error("Error updating product:", err);
     res.status(400).json({ error: err.message });
@@ -177,6 +256,17 @@ exports.deleteProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+
+    // Delete product images
+    if (product.mainImage) {
+      await uploadService.deleteFileByUrl(product.mainImage);
+    }
+    if (product.galleryImages && product.galleryImages.length > 0) {
+      for (const imageUrl of product.galleryImages) {
+        await uploadService.deleteFileByUrl(imageUrl);
+      }
+    }
+
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
     console.error("Error deleting product:", err);
@@ -184,21 +274,23 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// @desc    Update stock for specific variant
+// @desc    Update size variant stock
 // @route   PATCH /api/products/:id/stock
 // @access  Private/Admin
-exports.updateVariantStock = async (req, res) => {
+exports.updateStock = async (req, res) => {
   try {
-    const { size, color, stock } = req.body;
+    const { size, stock } = req.body;
     const product = await Product.findById(req.params.id);
     
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    const updated = product.updateVariantStock(size, color, stock);
-    if (!updated) {
-      return res.status(404).json({ message: "Variant not found" });
+    const variant = product.sizeVariants.find(v => v.size === size);
+    if (variant) {
+      variant.stock = stock;
+    } else {
+      product.sizeVariants.push({ size, stock });
     }
 
     await product.save();
@@ -206,25 +298,5 @@ exports.updateVariantStock = async (req, res) => {
   } catch (err) {
     console.error("Error updating stock:", err);
     res.status(400).json({ error: err.message });
-  }
-};
-
-// @desc    Get stock for specific variant
-// @route   GET /api/products/:id/stock/:size/:color
-// @access  Public
-exports.getVariantStock = async (req, res) => {
-  try {
-    const { size, color } = req.params;
-    const product = await Product.findById(req.params.id);
-    
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    const stock = product.getStockForVariant(parseFloat(size), color);
-    res.json({ size: parseFloat(size), color, stock });
-  } catch (err) {
-    console.error("Error fetching variant stock:", err);
-    res.status(500).json({ error: "Failed to fetch variant stock" });
   }
 };

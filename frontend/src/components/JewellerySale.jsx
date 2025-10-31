@@ -19,12 +19,18 @@ const JewelrySale = () => {
   const containerStyle = {
     backgroundColor: "#FFF9EB",
     fontFamily: "'Josefin Sans', sans-serif",
-    padding: isMobile ? "20px 15px" : "40px 20px",
+    paddingTop: isMobile ? "20px" : "40px",
+    paddingRight: isMobile ? "15px" : "20px",
+    paddingBottom: isMobile ? "20px" : "40px",
+    paddingLeft: isMobile ? "15px" : "20px",
   };
 
   const rowStyle = {
     maxWidth: "1400px",
-    margin: "0 auto",
+    marginTop: "0",
+    marginRight: "auto",
+    marginBottom: "0",
+    marginLeft: "auto",
     borderRadius: "10px",
     overflow: "hidden",
     minHeight: isMobile ? "auto" : "550px",
@@ -32,10 +38,16 @@ const JewelrySale = () => {
 
   const leftColStyle = {
     height: isMobile ? "200px" : "550px",
-    padding: "0",
+    paddingTop: "0",
+    paddingRight: "0",
+    paddingBottom: "0",
+    paddingLeft: "0",
     display: "flex",
     alignItems: "flex-end",
-    margin: isMobile ? "0 0 15px 0" : "0",
+    marginTop: "0",
+    marginRight: "0",
+    marginBottom: isMobile ? "15px" : "0",
+    marginLeft: "0",
   };
 
   const rightColStyle = {
@@ -44,7 +56,10 @@ const JewelrySale = () => {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    padding: "0",
+    paddingTop: "0",
+    paddingRight: "0",
+    paddingBottom: "0",
+    paddingLeft: "0",
   };
 
   const imageStyle = {
@@ -69,7 +84,10 @@ const JewelrySale = () => {
     width: isMobile ? "100%" : "90%",
     textAlign: "center",
     backgroundColor: "#0f4a3b",
-    padding: isMobile ? "12px 0" : "16px 0",
+    paddingTop: isMobile ? "12px" : "16px",
+    paddingRight: "0",
+    paddingBottom: isMobile ? "12px" : "16px",
+    paddingLeft: "0",
   };
 
   const buttonStyle = {

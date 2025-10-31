@@ -8,7 +8,7 @@ const {
   deleteDeliveryCharge,
   getLocations,
   bulkUploadDeliveryCharges
-} = require('../controllers/deliveryController');
+} = require('../controllers/DeliveryCharge');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 
 // All routes are admin protected

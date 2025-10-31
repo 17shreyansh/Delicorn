@@ -32,10 +32,11 @@ import {
 } from '@ant-design/icons';
 import { Link, useParams } from 'react-router-dom';
 import { getProductById, getRelatedProducts } from '../data/products';
+import apiService from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
-import ProductCard from '../components/ProductCard';
-import WebsiteFooter from '../components/Footer';
+import { ProductCard } from '../components/product';
+import { Footer as WebsiteFooter } from '../components/layout';
 import pg from '../assets/pg.jpg';
 import c1 from '../assets/c1.jpg';
 import c2 from '../assets/c2.jpg';
@@ -50,16 +51,19 @@ const { Panel } = Collapse;
 const { Option } = Select;
 
 const ProductDetail = () => {
-  const { id } = useParams();
-  const [quantity, setQuantity] = useState(1);
+  const { slug } = useParams();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useUser();
+  
+  const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('1');
   const [mainImage, setMainImage] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  
-  const productImages = [c1, c2, c3, c4, c5, ring];
+  const [productImages, setProductImages] = useState([]);
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [productLoading, setProductLoading] = useState(true);
   
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -67,13 +71,70 @@ const ProductDetail = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const product = getProductById(id);
-  const relatedProducts = getRelatedProducts(id, product?.category) || [];
+  React.useEffect(() => {
+    const fetchProduct = async () => {
+      setProductLoading(true);
+      try {
+        const response = await apiService.getProduct(slug);
+        setProduct(response.data);
+        
+        // Fetch related products
+        const relatedResponse = await apiService.getRelatedProducts(slug);
+        setRelatedProducts(relatedResponse.data || []);
+      } catch (error) {
+        console.error('Failed to fetch product:', error);
+        // Fallback to static data
+        const staticProduct = getProductById(slug);
+        setProduct(staticProduct);
+        setRelatedProducts(getRelatedProducts(slug, staticProduct?.category) || []);
+      } finally {
+        setProductLoading(false);
+      }
+    };
+    
+    if (slug) {
+      fetchProduct();
+    }
+  }, [slug]);
+
+  // Initialize images when product loads
+  React.useEffect(() => {
+    const images = [];
+    const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001';
+    
+    if (product) {
+      // Add main image
+      if (product.mainImage) {
+        images.push(`${backendUrl}${product.mainImage}`);
+      }
+      
+      // Add gallery images
+      if (product.galleryImages && product.galleryImages.length > 0) {
+        product.galleryImages.forEach(img => {
+          images.push(`${backendUrl}${img}`);
+        });
+      }
+    }
+    
+    // Fallback to static images if no product images
+    if (images.length === 0) {
+      images.push(...[c1, c2, c3, c4, c5, ring]);
+    }
+    
+    setProductImages(images);
+    setMainImage(images[0]);
+    setCurrentImageIndex(0);
+  }, [product]);
+
+  if (productLoading) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center' }}>
+        <div>Loading product...</div>
+      </div>
+    );
+  }
 
   if (!product) return <div style={{ padding: 40 }}>Product not found</div>;
-
-  // initialize main image
-  if (!mainImage && productImages[0]) setMainImage(productImages[0]);
   
   const nextImage = () => {
     const nextIndex = (currentImageIndex + 1) % productImages.length;
@@ -98,7 +159,7 @@ const ProductDetail = () => {
   };
 
   const handleWishlist = () => {
-    if (isInWishlist(product.id)) removeFromWishlist(product.id);
+    if (isInWishlist(product._id)) removeFromWishlist(product._id);
     else addToWishlist(product);
   };
 
@@ -114,17 +175,14 @@ const ProductDetail = () => {
         <div style={{ maxWidth: isMobile ? '100%' : 1200, margin: '0 auto' }}>
           {/* Breadcrumb - Desktop only */}
           {!isMobile && (
-            <Breadcrumb style={{ marginBottom: 20 }}>
-              <Breadcrumb.Item>
-                <Link to="/">Home</Link>
-              </Breadcrumb.Item>
-              <Breadcrumb.Item>
-                <Link to={`/${product.category}`}>
-                  {product.category === 'ashta-dhatu' ? 'Ashta Dhatu' : 'Fashion Jewellery'}
-                </Link>
-              </Breadcrumb.Item>
-              <Breadcrumb.Item>{product.name}</Breadcrumb.Item>
-            </Breadcrumb>
+            <Breadcrumb 
+              style={{ marginBottom: 20 }}
+              items={[
+                { title: <Link to="/">Home</Link> },
+                { title: <Link to={`/${product.productType}`}>{product.productType === 'ashta-dhatu' ? 'Ashta Dhatu' : 'Fashion Jewellery'}</Link> },
+                { title: product.name }
+              ]}
+            />
           )}
 
           <Row gutter={isMobile ? [0, 0] : [40, 40]}>
@@ -358,7 +416,7 @@ const ProductDetail = () => {
                   justifyContent: 'space-between'
                 }}>
                   <Text type="secondary" style={{ fontFamily: "'Josefin Sans', sans-serif" }}>
-                    SKU: {product.sku || 'BR076'}
+                    SKU: {product.sku || 'N/A'}
                   </Text>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -374,10 +432,15 @@ const ProductDetail = () => {
                       style={{ width: 80 }}
                       size="small"
                     >
-                      <Option value="1">1</Option>
-                      <Option value="2">2</Option>
-                      <Option value="3">3</Option>
-                      <Option value="4">4</Option>
+                      {product.sizeVariants && product.sizeVariants.length > 0 ? (
+                        product.sizeVariants.map(variant => (
+                          <Option key={variant.size} value={variant.size}>
+                            {variant.size}
+                          </Option>
+                        ))
+                      ) : (
+                        <Option value="1">1</Option>
+                      )}
                     </Select>
                   </div>
                 </div>
@@ -407,26 +470,32 @@ const ProductDetail = () => {
                         fontFamily: "'Josefin Sans', sans-serif",
                         color: '#003333'
                       }}>Color:</Text>
-                      <div
-                        style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: '50%',
-                          background: '#d4af37',
-                          border: '2px solid #0d4b4b',
-                          cursor: 'pointer'
-                        }}
-                      />
-                      <div
-                        style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: '50%',
-                          background: '#f8e6d0',
-                          border: '1px solid #ddd',
-                          cursor: 'pointer'
-                        }}
-                      />
+                      {product.availableColors && product.availableColors.length > 0 ? (
+                        product.availableColors.map((color, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: '50%',
+                              background: color.toLowerCase(),
+                              border: index === 0 ? '2px solid #0d4b4b' : '1px solid #ddd',
+                              cursor: 'pointer'
+                            }}
+                          />
+                        ))
+                      ) : (
+                        <div
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: '50%',
+                            background: '#d4af37',
+                            border: '2px solid #0d4b4b',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      )}
                     </div>
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -454,26 +523,32 @@ const ProductDetail = () => {
                       fontFamily: "'Josefin Sans', sans-serif",
                       color: '#003333'
                     }}>Color</Text>
-                    <div
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: '50%',
-                        background: '#d4af37',
-                        border: '2px solid #0d4b4b',
-                        cursor: 'pointer'
-                      }}
-                    />
-                    <div
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: '50%',
-                        background: '#f8e6d0',
-                        border: '1px solid #ddd',
-                        cursor: 'pointer'
-                      }}
-                    />
+                    {product.availableColors && product.availableColors.length > 0 ? (
+                      product.availableColors.map((color, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: '50%',
+                            background: color.toLowerCase(),
+                            border: index === 0 ? '2px solid #0d4b4b' : '1px solid #ddd',
+                            cursor: 'pointer'
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <div
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: '50%',
+                          background: '#d4af37',
+                          border: '2px solid #0d4b4b',
+                          cursor: 'pointer'
+                        }}
+                      />
+                    )}
                   </div>
                 )}
 
@@ -486,7 +561,7 @@ const ProductDetail = () => {
                         icon={<ShoppingCartOutlined />}
                         size="large"
                         onClick={handleAddToCart}
-                        disabled={!product.inStock}
+                        disabled={!product.isActive || !product.inStock}
                         style={{
                           background: '#0d4b4b',
                           borderColor: '#0d4b4b',
@@ -568,110 +643,71 @@ const ProductDetail = () => {
                   defaultActiveKey={['1']}
                   style={{ background: 'transparent' }}
                   expandIconPosition="end"
-                >
-                  <Panel 
-                    header={
-                      <Text strong style={{ 
-                        fontSize: '16px',
-                        color: '#000000',
-                        fontFamily: "'Josefin Sans', sans-serif",
-                        fontWeight: 400
-                      }}>
-                        DESCRIPTION
-                      </Text>
-                    } 
-                    key="1" 
-                    style={{ 
-                      border: 'none',
-                      marginBottom: 8,
-                      background: '#f8f9fa',
-                      borderRadius: 8
-                    }}
-                  >
-                    <Paragraph style={{ 
-                      margin: 0,
-                      color: '#666',
-                      lineHeight: 1.6,
-                      fontFamily: "'Josefin Sans', sans-serif",
-                      fontSize: '15px'
-                    }}>
-                      {product.description}
-                    </Paragraph>
-                  </Panel>
-                  
-                  <Panel 
-                    header={
-                      <Text strong style={{ 
-                        fontSize: '16px',
-                        color: '#000000',
-                        fontFamily: "'Josefin Sans', sans-serif",
-                        fontWeight: 400
-                      }}>
-                        METAL DETAILS
-                      </Text>
-                    } 
-                    key="2" 
-                    style={{ 
-                      border: 'none',
-                      marginBottom: 8,
-                      background: '#f8f9fa',
-                      borderRadius: 8
-                    }}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
-                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Ashta Dhatu alloy base</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
-                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Precise gold plating</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
-                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Premium quality finish</Text>
-                      </div>
-                    </div>
-                  </Panel>
-                  
-                  <Panel 
-                    header={
-                      <Text strong style={{ 
-                        fontSize: '16px',
-                        color: '#000000',
-                        fontFamily: "'Josefin Sans', sans-serif",
-                        fontWeight: 400
-                      }}>
-                        BENEFITS
-                      </Text>
-                    } 
-                    key="3" 
-                    style={{ 
-                      border: 'none',
-                      background: '#f8f9fa',
-                      borderRadius: 8
-                    }}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
-                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Hypoallergenic & skin-friendly</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
-                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Durable & long-lasting finish</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
-                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Lightweight & comfortable</Text>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
-                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Tarnish resistant</Text>
-                      </div>
-                    </div>
-                  </Panel>
-                </Collapse>
+                  items={[
+                    {
+                      key: '1',
+                      label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>DESCRIPTION</Text>,
+                      children: <Paragraph style={{ margin: 0, color: '#666', lineHeight: 1.6, fontFamily: "'Josefin Sans', sans-serif", fontSize: '15px' }}>{product.description}</Paragraph>,
+                      style: { border: 'none', marginBottom: 8, background: '#f8f9fa', borderRadius: 8 }
+                    },
+                    {
+                      key: '2',
+                      label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>METAL DETAILS</Text>,
+                      children: (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {product.metalDetails && product.metalDetails.length > 0 ? (
+                            product.metalDetails.map((detail, index) => (
+                              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
+                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{detail}</Text>
+                              </div>
+                            ))
+                          ) : (
+                            <>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
+                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Ashta Dhatu alloy base</Text>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
+                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Precise gold plating</Text>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ),
+                      style: { border: 'none', marginBottom: 8, background: '#f8f9fa', borderRadius: 8 }
+                    },
+                    {
+                      key: '3',
+                      label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>BENEFITS</Text>,
+                      children: (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {product.benefits && product.benefits.length > 0 ? (
+                            product.benefits.map((benefit, index) => (
+                              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
+                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{benefit}</Text>
+                              </div>
+                            ))
+                          ) : (
+                            <>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
+                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Hypoallergenic & skin-friendly</Text>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
+                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Durable & long-lasting finish</Text>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ),
+                      style: { border: 'none', background: '#f8f9fa', borderRadius: 8 }
+                    }
+                  ]}
+                />
               </div>
             </Col>
           </Row>
@@ -710,7 +746,7 @@ const ProductDetail = () => {
             <Row gutter={[20, 20]} style={{ marginTop: 18 }}>
               {[1, 2, 3, 4].map((n) => (
                 <Col xs={24} sm={12} md={6} key={n}>
-                  <Card bodyStyle={{ padding: 16 }} style={{ borderRadius: 8 }}>
+                  <Card styles={{ body: { padding: 16 } }} style={{ borderRadius: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <Avatar>{'D'}</Avatar>
                       <div>

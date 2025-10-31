@@ -58,3 +58,5 @@ pids
 # MongoDB data directory
 /data/db
 
+/uploads
+

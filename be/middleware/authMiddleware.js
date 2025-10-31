@@ -31,16 +31,14 @@ exports.protect = async (req, res, next) => {
     console.error("Token verification error:", err);
     
     // Clear invalid token cookie
-    res.clearCookie('token');
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Lax',
+      path: '/'
+    });
     
-    if (err.name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: "Invalid token, please log in again" });
-    }
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: "Token expired, please log in again" });
-    }
-    
-    return res.status(401).json({ message: "Not authorized, token failed" });
+    return res.status(401).json({ message: "Invalid token, please log in again" });
   }
 };
 
@@ -53,3 +51,5 @@ exports.isAdmin = (req, res, next) => {
     res.status(403).json({ message: "Access denied: Admin privileges required" });
   }
 };
+
+exports.admin = exports.isAdmin; // Alias for consistency

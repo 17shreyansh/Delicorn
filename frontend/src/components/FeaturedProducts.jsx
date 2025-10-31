@@ -1,13 +1,28 @@
-import React from 'react';
-import { Row, Col, Typography, Button } from 'antd';
-import { Link } from 'react-router-dom';
-import { allProducts } from '../data/products';
-import ProductCard from './ProductCard';
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Typography, Spin } from 'antd';
+import { ProductCard } from './product';
+import apiService from '../services/api';
 
 const { Title } = Typography;
 
 const FeaturedProducts = ({ limit = 8 }) => {
-  const featuredProducts = allProducts.slice(0, limit);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const response = await apiService.getFeaturedProducts(limit);
+        setProducts(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch featured products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, [limit]);
 
   return (
     <div style={{
@@ -29,21 +44,27 @@ const FeaturedProducts = ({ limit = 8 }) => {
         }}>
           Sacred Pendants & Bracelets
         </Title>
-        <Row gutter={[20, 24]} justify="center">
-          {featuredProducts.map(product => (
-            <Col
-              xs={24}
-              sm={12}
-              md={8}  
-              lg={6}
-              xl={6}
-              key={product.id}
-              style={{ display: 'flex', justifyContent: 'center' }}
-            >
-              <ProductCard product={product} />
-            </Col>
-          ))}
-        </Row>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Row gutter={[20, 24]} justify="center">
+            {products.map(product => (
+              <Col
+                xs={24}
+                sm={12}
+                md={8}  
+                lg={6}
+                xl={6}
+                key={product._id}
+                style={{ display: 'flex', justifyContent: 'center' }}
+              >
+                <ProductCard product={product} />
+              </Col>
+            ))}
+          </Row>
+        )}
         
       </div>
     </div>

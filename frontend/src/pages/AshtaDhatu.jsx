@@ -1,25 +1,97 @@
-import React from 'react';
-import { Typography, Breadcrumb, Row, Col, Dropdown, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Typography, Breadcrumb, Row, Col, Dropdown, Button, Spin } from 'antd';
 import { FilterOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-import ProductList from '../components/ProductList';
-import Footer from '../components/Footer';
-import Offer from '../components/Offer';
-import { ashtaDhatuProducts } from '../data/products';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ProductList } from '../components/product';
+import { Footer } from '../components/layout';
+import { Offer } from '../components';
+import apiService from '../services/api';
 import hero1 from '../assets/jewelleryImage.jpg';
 import p1 from '../assets/c1.jpg';
 
 const { Title } = Typography;
 
 const AshtaDhatu = () => {
-  const categories = [
-    { name: 'Rings', image: p1, link: '/ashta-dhatu/rings' },
-    { name: 'Pendants', image: p1, link: '/ashta-dhatu/pendants' },
-    { name: 'Bracelets', image: p1, link: '/ashta-dhatu/bracelets' },
-    { name: 'Earrings', image: p1, link: '/ashta-dhatu/earrings' },
-    { name: 'Necklaces', image: p1, link: '/ashta-dhatu/necklaces' },
+  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await apiService.getProductsByType('ashta-dhatu');
+        const fetchedProducts = response.data || [];
+        setAllProducts(fetchedProducts);
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Handle URL params for category filtering
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category) {
+      setSelectedCategory(category);
+      filterProducts(category);
+    }
+  }, [searchParams, allProducts]);
+
+  const filterProducts = (categoryName) => {
+    if (categoryName === 'all') {
+      setProducts(allProducts);
+    } else {
+      const filtered = allProducts.filter(product => 
+        product.categories?.some(cat => 
+          cat.name?.toLowerCase() === categoryName.toLowerCase()
+        )
+      );
+      setProducts(filtered);
+    }
+  };
+
+  const handleCategoryClick = (categoryName) => {
+    setSelectedCategory(categoryName);
+    setSearchParams(categoryName === 'all' ? {} : { category: categoryName });
+    filterProducts(categoryName);
+  };
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await apiService.getCategories();
+        const ashtaDhatuCategories = response.data?.filter(cat => 
+          cat.productType === 'ashta-dhatu'
+        ) || [];
+        setCategories(ashtaDhatuCategories.length > 0 ? ashtaDhatuCategories : [
+          { name: 'Rings', image: p1, link: '/ashta-dhatu/rings' },
+          { name: 'Pendants', image: p1, link: '/ashta-dhatu/pendants' },
+          { name: 'Bracelets', image: p1, link: '/ashta-dhatu/bracelets' },
+          { name: 'Earrings', image: p1, link: '/ashta-dhatu/earrings' },
+          { name: 'Necklaces', image: p1, link: '/ashta-dhatu/necklaces' },
+        ]);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        setCategories([
+          { name: 'Rings', image: p1, link: '/ashta-dhatu/rings' },
+          { name: 'Pendants', image: p1, link: '/ashta-dhatu/pendants' },
+          { name: 'Bracelets', image: p1, link: '/ashta-dhatu/bracelets' },
+          { name: 'Earrings', image: p1, link: '/ashta-dhatu/earrings' },
+          { name: 'Necklaces', image: p1, link: '/ashta-dhatu/necklaces' },
+        ]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div>
@@ -64,27 +136,50 @@ const AshtaDhatu = () => {
       {/* Categories */}
       <div style={{ padding: '0 20px 40px', maxWidth: '1200px', margin: '0 auto' }}>
         <Row gutter={[24, 24]} justify="center">
+          <Col xs={12} sm={8} md={6} lg={4} xl={4}>
+            <div 
+              style={{ textAlign: 'center', cursor: 'pointer' }}
+              onClick={() => handleCategoryClick('all')}
+            >
+              <img 
+                src={p1}
+                alt="All Categories"
+                style={{ 
+                  width: '150px', 
+                  height: '150px', 
+                  objectFit: 'cover', 
+                  borderRadius: '50%',
+                  marginBottom: '10px',
+                  border: selectedCategory === 'all' ? '3px solid #114D4D' : '1px solid #114D4D'
+                }}
+              />
+              <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif",fontWeight: '500', color: selectedCategory === 'all' ? '#114D4D' : '#333' }}>
+                All Categories
+              </Title>
+            </div>
+          </Col>
           {categories.map((category, index) => (
-            <Col xs={12} sm={8} md={6} lg={4} xl={4} key={index}>
-              <Link to={category.link}>
-                <div style={{ textAlign: 'center', cursor: 'pointer' }}>
-                  <img 
-                    src={category.image} 
-                    alt={category.name}
-                    style={{ 
-                      width: '150px', 
-                      height: '150px', 
-                      objectFit: 'cover', 
-                      borderRadius: '50%',
-                      marginBottom: '10px',
-                      border: '1px solid #114D4D'
-                    }}
-                  />
-                  <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif",fontWeight: '500', color: '#333' }}>
-                    {category.name}
-                  </Title>
-                </div>
-              </Link>
+            <Col xs={12} sm={8} md={6} lg={4} xl={4} key={category._id || index}>
+              <div 
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+                onClick={() => handleCategoryClick(category.name)}
+              >
+                <img 
+                  src={category.image ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${category.image}` : p1}
+                  alt={category.name}
+                  style={{ 
+                    width: '150px', 
+                    height: '150px', 
+                    objectFit: 'cover', 
+                    borderRadius: '50%',
+                    marginBottom: '10px',
+                    border: selectedCategory === category.name ? '3px solid #114D4D' : '1px solid #114D4D'
+                  }}
+                />
+                <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif",fontWeight: '500', color: selectedCategory === category.name ? '#114D4D' : '#333' }}>
+                  {category.name}
+                </Title>
+              </div>
             </Col>
           ))}
         </Row>
@@ -100,21 +195,21 @@ const AshtaDhatu = () => {
             <Dropdown
               menu={{
                 items: [
-                  { key: '1', label: 'All Categories' },
-                  { key: '2', label: 'Rings' },
-                  { key: '3', label: 'Pendants' },
-                  { key: '4', label: 'Bracelets' },
-                  { key: '5', label: 'Earrings' },
-                  { key: '6', label: 'Necklaces' },
-                  { key: '7', label: 'Price: Under ₹5000' },
-                  { key: '8', label: 'Price: ₹5000-₹15000' },
-                  { key: '9', label: 'Price: Above ₹15000' }
+                  { key: 'all', label: 'All Categories', onClick: () => handleCategoryClick('all') },
+                  ...categories.map(cat => ({
+                    key: cat.name,
+                    label: cat.name,
+                    onClick: () => handleCategoryClick(cat.name)
+                  })),
+                  { key: 'price1', label: 'Price: Under ₹5000' },
+                  { key: 'price2', label: 'Price: ₹5000-₹15000' },
+                  { key: 'price3', label: 'Price: Above ₹15000' }
                 ]
               }}
               trigger={['click']}
             >
               <Button icon={<FilterOutlined />} style={{ fontFamily: "'Josefin Sans', sans-serif", height: '32px', minWidth: '120px' }}>
-                All
+                {selectedCategory === 'all' ? 'All' : selectedCategory}
               </Button>
             </Dropdown>
           </div>
@@ -140,7 +235,13 @@ const AshtaDhatu = () => {
             </Dropdown>
           </div>
         </div>
-        <ProductList products={ashtaDhatuProducts} />
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '50px 0' }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <ProductList products={products} />
+        )}
       </div>
 
       <Offer /> 

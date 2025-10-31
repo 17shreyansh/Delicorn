@@ -41,6 +41,14 @@ const userSchema = new mongoose.Schema({
             message: 'Please enter a valid phone number'
         }
     },
+    gender: {
+        type: String,
+        enum: ['MALE', 'FEMALE', 'OTHER'],
+        trim: true
+    },
+    dateOfBirth: {
+        type: Date
+    },
     address: {
         street: { type: String, trim: true, default: '' },
         city: { type: String, trim: true, default: '' },

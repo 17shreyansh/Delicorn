@@ -1,46 +1,103 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import apiService from '../services/api';
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [wishlist, setWishlist] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Only check localStorage for cached user data
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const login = (userData) => {
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+    fetchWishlist();
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
     setWishlist([]);
+    localStorage.removeItem('user');
+    await apiService.logout();
   };
 
-  const addToWishlist = (product) => {
-    setWishlist(prev => {
-      if (prev.find(item => item.id === product.id)) {
-        return prev;
+  const addToWishlist = async (product) => {
+    try {
+      if (user) {
+        await apiService.addToWishlist(product._id || product.id);
       }
-      return [...prev, product];
-    });
+      setWishlist(prev => {
+        const productId = product._id || product.id;
+        if (prev.find(item => (item._id || item.id) === productId)) {
+          return prev;
+        }
+        return [...prev, product];
+      });
+    } catch (error) {
+      console.error('Failed to add to wishlist:', error);
+    }
   };
 
-  const removeFromWishlist = (productId) => {
-    setWishlist(prev => prev.filter(item => item.id !== productId));
+  const removeFromWishlist = async (productId) => {
+    try {
+      if (user) {
+        await apiService.removeFromWishlist(productId);
+      }
+      setWishlist(prev => prev.filter(item => (item._id || item.id) !== productId));
+    } catch (error) {
+      console.error('Failed to remove from wishlist:', error);
+    }
   };
 
   const isInWishlist = (productId) => {
-    return wishlist.some(item => item.id === productId);
+    return wishlist.some(item => (item._id || item.id) === productId);
+  };
+
+  const fetchWishlist = async () => {
+    if (user) {
+      try {
+        const response = await apiService.getWishlist();
+        setWishlist(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch wishlist:', error);
+      }
+    }
+  };
+
+  const isAuthenticated = () => {
+    return !!user;
+  };
+
+  const isAdmin = () => {
+    return user?.isAdmin === true;
   };
 
   return (
     <UserContext.Provider value={{
       user,
       wishlist,
+      loading,
       login,
       logout,
       addToWishlist,
       removeFromWishlist,
-      isInWishlist
+      isInWishlist,
+      fetchWishlist,
+      isAuthenticated,
+      isAdmin
     }}>
       {children}
     </UserContext.Provider>

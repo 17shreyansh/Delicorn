@@ -5,14 +5,18 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "start": "node start.js",
+    "start": "node server.js",
     "server": "node server.js",
-    "seed": "node seeds/adminSeed.js"
+    "seed:admin": "node seeds/adminSeed.js",
+    "seed:users": "node seeds/userSeed.js",
+    "seed:products": "node seeds/productSeed.js",
+    "seed:all": "npm run seed:admin && npm run seed:users && npm run seed:products",
+    "db:reset": "node -e \"require('./config/db'); const mongoose = require('mongoose'); mongoose.connection.once('open', async () => { await mongoose.connection.db.dropDatabase(); console.log('Database reset'); process.exit(0); });\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Delicorn E-commerce Backend API",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",

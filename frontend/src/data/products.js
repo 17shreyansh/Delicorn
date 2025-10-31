@@ -3,23 +3,27 @@ import ring from '../assets/ring.jpg';
 export const ashtaDhatuProducts = [
   {
     id: 1,
+    slug: "traditional-ashta-dhatu-ring",
     name: "Traditional Ashta Dhatu Ring",
     description: "Handcrafted ring made from eight sacred metals",
     price: 2500,
     originalPrice: 3000,
     image: ring,
     category: "ashta-dhatu",
+    productType: "ashta-dhatu",
     inStock: true,
     rating: 4.5,
     reviews: 23
   },
   {
     id: 2,
+    slug: "ashta-dhatu-pendant",
     name: "Ashta Dhatu Pendant",
     description: "Sacred pendant with intricate designs",
     price: 1800,
     image: ring,
     category: "ashta-dhatu",
+    productType: "ashta-dhatu",
     inStock: true,
     rating: 4.8,
     reviews: 15
@@ -74,12 +78,14 @@ export const ashtaDhatuProducts = [
 export const fashionJewelryProducts = [
   {
     id: 7,
+    slug: "diamond-stud-earrings",
     name: "Diamond Stud Earrings",
     description: "Classic diamond studs for everyday elegance",
     price: 8500,
     originalPrice: 10000,
     image: ring,
     category: "fashion-jewelry",
+    productType: "fashion-jewelry",
     inStock: true,
     rating: 4.8,
     reviews: 67
@@ -144,12 +150,14 @@ export const fashionJewelryProducts = [
 
 export const allProducts = [...ashtaDhatuProducts, ...fashionJewelryProducts];
 
-export const getProductById = (id) => {
-  return allProducts.find(product => product.id === parseInt(id));
+export const getProductById = (slug) => {
+  return allProducts.find(product => product.slug === slug || product.id === parseInt(slug));
 };
 
-export const getRelatedProducts = (productId, category, limit = 4) => {
+export const getRelatedProducts = (slug, category, limit = 4) => {
+  const product = getProductById(slug);
+  if (!product) return [];
   return allProducts
-    .filter(product => product.id !== parseInt(productId) && product.category === category)
+    .filter(p => p.id !== product.id && p.category === category)
     .slice(0, limit);
 };

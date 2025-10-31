@@ -9,19 +9,22 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const brandRoutes = require("./routes/brandRoutes");
 const isAdmin = require('./routes/isadmin'); // This is likely your route for checking admin status
 const uploadRoutes = require('./routes/uploadRoutes'); // <--- NEW: Import the upload routes
 const path = require('path'); // <--- NEW: Import the path module
-const brand = require('./routes/brandRoutes')
+
 const orders = require('./routes/orderRoutes')
 const dummyPayment = require('./routes/paymentDummy');
 const wishlist = require('./routes/wishlistRoutes');
 const reviews = require('./routes/reviews')
 const coupon = require('./routes/CouponRoutes')
 const support = require('./routes/supportRoutes'); // Import support ticket routes
-const homepageRoutes = require('./routes/homepageRoutes'); // Import homepage routes
 const menu = require('./routes/menuRoutes'); // Import menu routes
 const searchRoutes = require('./routes/searchRoutes'); // Import search routes
+const deliveryRoutes = require('./routes/deliveryRoutes'); // Import delivery routes
+const addressRoutes = require('./routes/addressRoutes'); // Import address routes
+const returnRoutes = require('./routes/returnRoutes'); // Import return routes
 const OrderService = require('./services/OrderService');
 const cron = require('node-cron');
 
@@ -62,7 +65,7 @@ initializeServices().catch(error => {
 
 // Middleware setup
 app.use(cors({
-    origin: ['https://umbricoindia.com', 'https://www.umbricoindia.com', 'http://localhost:5173'],
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -84,27 +87,45 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // <--- NE
 app.use("/api/auth", authRoutes); // For user authentication (login, register, etc.)
 app.use("/api/products", productRoutes); // For product-related API calls
 app.use("/api/categories", categoryRoutes); // For category-related API calls
+app.use("/api/brands", brandRoutes); // For brand-related API calls
 app.use("/api/admin", isAdmin); // Your specific admin check route
 app.use("/api/upload", uploadRoutes); // <--- NEW: For image upload API calls
-app.use("/api/brands", brand); 
+ 
 app.use("/api/orders", orders); 
 app.use('/api/payment', dummyPayment);
 app.use('/api/wishlist', wishlist); // NEW: Wishlist routes
 app.use('/api/reviews', reviews); 
 app.use('/api/coupons', coupon); 
 app.use('/api/tickets', support); // NEW: Support ticket routes
-app.use('/api/home', homepageRoutes); // NEW: Homepage content routes
 app.use('/api/menus', menu); // NEW: Menu routes
 app.use('/api/search', searchRoutes); // NEW: Search routes
+app.use('/api/delivery', deliveryRoutes); // NEW: Delivery routes
+app.use('/api/user/addresses', addressRoutes); // NEW: Address routes
+app.use('/api/returns', returnRoutes); // NEW: Return routes
 
 
 
 
 // Basic route for testing API status
 app.get("/", (req, res) => {
-    res.send("Shoe Store API is running...");
+    res.send("Delicorn E-commerce API is running...");
+});
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+    res.json({ status: "OK", message: "API is healthy" });
 });
 
 // Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`\n🚀 Delicorn E-commerce API Server`);
+    console.log(`📡 Server running on port ${PORT}`);
+    console.log(`🌐 API URL: http://localhost:${PORT}`);
+    console.log(`📊 Health Check: http://localhost:${PORT}/api/health`);
+    console.log(`\n📝 Available endpoints:`);
+    console.log(`   - Products: http://localhost:${PORT}/api/products`);
+    console.log(`   - Auth: http://localhost:${PORT}/api/auth`);
+    console.log(`   - Admin: http://localhost:${PORT}/admin`);
+    console.log(`\n✅ Ready for connections!\n`);
+});

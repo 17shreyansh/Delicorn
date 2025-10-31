@@ -1,8 +1,8 @@
 import React from "react";
 import { Row, Col } from "antd";
 import { Link } from "react-router-dom";
-import p1 from "../assets/p1.png";
-import p2 from "../assets/p2.png";
+import p1 from "../../assets/p1.png";
+import p2 from "../../assets/p2.png";
 
 const ProductCategories = () => {
   return (

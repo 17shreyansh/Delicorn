@@ -1,24 +1,97 @@
-import React from 'react';
-import { Typography, Breadcrumb, Row, Col, Dropdown, Button } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Typography, Breadcrumb, Row, Col, Dropdown, Button, Spin } from 'antd';
 import { FilterOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-import ProductList from '../components/ProductList';
-import Footer from '../components/Footer';
-import Offer2 from '../components/Offer2';
-import { fashionJewelryProducts } from '../data/products';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ProductList } from '../components/product';
+import { Footer } from '../components/layout';
+import { Offer2 } from '../components';
+import apiService from '../services/api';
 import hero1 from '../assets/hero1.jpg';
 import p2 from '../assets/p2.png';
 
 const { Title } = Typography;
 
 const FashionJewelry = () => {
-  const categories = [
-    { name: 'Earrings', image: p2, link: '/fashion-jewelry/earrings' },
-    { name: 'Necklaces', image: p2, link: '/fashion-jewelry/necklaces' },
-    { name: 'Bracelets', image: p2, link: '/fashion-jewelry/bracelets' },
-    { name: 'Rings', image: p2, link: '/fashion-jewelry/rings' },
-    { name: 'Anklets', image: p2, link: '/fashion-jewelry/anklets' }
-  ];
+  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await apiService.getProductsByType('fashion-jewelry');
+        const fetchedProducts = response.data || [];
+        setAllProducts(fetchedProducts);
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Handle URL params for category filtering
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category) {
+      setSelectedCategory(category);
+      filterProducts(category);
+    }
+  }, [searchParams, allProducts]);
+
+  const filterProducts = (categoryName) => {
+    if (categoryName === 'all') {
+      setProducts(allProducts);
+    } else {
+      const filtered = allProducts.filter(product => 
+        product.categories?.some(cat => 
+          cat.name?.toLowerCase() === categoryName.toLowerCase()
+        )
+      );
+      setProducts(filtered);
+    }
+  };
+
+  const handleCategoryClick = (categoryName) => {
+    setSelectedCategory(categoryName);
+    setSearchParams(categoryName === 'all' ? {} : { category: categoryName });
+    filterProducts(categoryName);
+  };
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await apiService.getCategories();
+        const fashionCategories = response.data?.filter(cat => 
+          cat.productType === 'fashion-jewelry'
+        ) || [];
+        setCategories(fashionCategories.length > 0 ? fashionCategories : [
+          { name: 'Earrings', image: p2, link: '/fashion-jewelry/earrings' },
+          { name: 'Necklaces', image: p2, link: '/fashion-jewelry/necklaces' },
+          { name: 'Bracelets', image: p2, link: '/fashion-jewelry/bracelets' },
+          { name: 'Rings', image: p2, link: '/fashion-jewelry/rings' },
+          { name: 'Anklets', image: p2, link: '/fashion-jewelry/anklets' }
+        ]);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        setCategories([
+          { name: 'Earrings', image: p2, link: '/fashion-jewelry/earrings' },
+          { name: 'Necklaces', image: p2, link: '/fashion-jewelry/necklaces' },
+          { name: 'Bracelets', image: p2, link: '/fashion-jewelry/bracelets' },
+          { name: 'Rings', image: p2, link: '/fashion-jewelry/rings' },
+          { name: 'Anklets', image: p2, link: '/fashion-jewelry/anklets' }
+        ]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div>
@@ -61,27 +134,50 @@ const FashionJewelry = () => {
       {/* Categories */}
       <div style={{ padding: '0 20px 40px', maxWidth: '1200px', margin: '0 auto' }}>
         <Row gutter={[24, 24]} justify="center">
+          <Col xs={12} sm={8} md={6} lg={4} xl={4}>
+            <div 
+              style={{ textAlign: 'center', cursor: 'pointer' }}
+              onClick={() => handleCategoryClick('all')}
+            >
+              <img
+                src={p2}
+                alt="All Categories"
+                style={{
+                  width: '150px',
+                  height: '150px',
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                  marginBottom: '10px',
+                  border: selectedCategory === 'all' ? '3px solid #114D4D' : '1px solid #114D4D'
+                }}
+              />
+              <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', color: selectedCategory === 'all' ? '#114D4D' : '#333' }}>
+                All Categories
+              </Title>
+            </div>
+          </Col>
           {categories.map((category, index) => (
-            <Col xs={12} sm={8} md={6} lg={4} xl={4} key={index}>
-              <Link to={category.link}>
-                <div style={{ textAlign: 'center', cursor: 'pointer' }}>
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    style={{
-                      width: '150px',
-                      height: '150px',
-                      objectFit: 'cover',
-                      borderRadius: '50%',
-                      marginBottom: '10px',
-                      border: '1px solid #114D4D'
-                    }}
-                  />
-                  <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', color: '#333' }}>
-                    {category.name}
-                  </Title>
-                </div>
-              </Link>
+            <Col xs={12} sm={8} md={6} lg={4} xl={4} key={category._id || index}>
+              <div 
+                style={{ textAlign: 'center', cursor: 'pointer' }}
+                onClick={() => handleCategoryClick(category.name)}
+              >
+                <img
+                  src={category.image ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${category.image}` : p2}
+                  alt={category.name}
+                  style={{
+                    width: '150px',
+                    height: '150px',
+                    objectFit: 'cover',
+                    borderRadius: '50%',
+                    marginBottom: '10px',
+                    border: selectedCategory === category.name ? '3px solid #114D4D' : '1px solid #114D4D'
+                  }}
+                />
+                <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', color: selectedCategory === category.name ? '#114D4D' : '#333' }}>
+                  {category.name}
+                </Title>
+              </div>
             </Col>
           ))}
         </Row>
@@ -95,21 +191,21 @@ const FashionJewelry = () => {
             <Dropdown
               menu={{
                 items: [
-                  { key: '1', label: 'All Categories' },
-                  { key: '2', label: 'Earrings' },
-                  { key: '3', label: 'Necklaces' },
-                  { key: '4', label: 'Bracelets' },
-                  { key: '5', label: 'Rings' },
-                  { key: '6', label: 'Anklets' },
-                  { key: '7', label: 'Price: Under ₹3000' },
-                  { key: '8', label: 'Price: ₹3000-₹10000' },
-                  { key: '9', label: 'Price: Above ₹10000' }
+                  { key: 'all', label: 'All Categories', onClick: () => handleCategoryClick('all') },
+                  ...categories.map(cat => ({
+                    key: cat.name,
+                    label: cat.name,
+                    onClick: () => handleCategoryClick(cat.name)
+                  })),
+                  { key: 'price1', label: 'Price: Under ₹3000' },
+                  { key: 'price2', label: 'Price: ₹3000-₹10000' },
+                  { key: 'price3', label: 'Price: Above ₹10000' }
                 ]
               }}
               trigger={['click']}
             >
               <Button icon={<FilterOutlined />} style={{ fontFamily: "'Josefin Sans', sans-serif", height: '32px', minWidth: '120px' }}>
-                All
+                {selectedCategory === 'all' ? 'All' : selectedCategory}
               </Button>
             </Dropdown>
           </div>
@@ -135,7 +231,13 @@ const FashionJewelry = () => {
             </Dropdown>
           </div>
         </div>
-        <ProductList products={fashionJewelryProducts} />
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '50px 0' }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <ProductList products={products} />
+        )}
       </div>
 
       <Offer2 />

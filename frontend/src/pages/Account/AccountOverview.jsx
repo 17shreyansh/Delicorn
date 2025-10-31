@@ -1,34 +1,79 @@
-import React, { useState } from 'react';
-import { Typography, Button, Input, Form, Select, Row, Col } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Typography, Button, Input, Form, Select, Row, Col, message, Spin } from 'antd';
 import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import AccountLayout from '../../components/AccountLayout';
 import AccountContent from '../../components/AccountContent';
+import { useUser } from '../../context/UserContext';
+import apiService from '../../services/api';
 
 const { Text } = Typography;
 const { Option } = Select;
 
 const AccountOverview = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const { user, login } = useUser();
 
-  const initialValues = {
-    name: 'FULLNAME',
-    phone: '9898989899',
-    email: 'Hello@Mail.Com',
-    gender: 'FEMALE',
-    dob: '09/09/1990'
-  };
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await apiService.getCurrentUser();
+        const userData = response.data;
+        form.setFieldsValue({
+          name: userData.name,
+          phone: userData.phone,
+          email: userData.email,
+          gender: userData.gender,
+          dob: userData.dateOfBirth ? new Date(userData.dateOfBirth).toLocaleDateString('en-GB') : ''
+        });
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+        // Fallback to user context data
+        if (user) {
+          form.setFieldsValue({
+            name: user.name || '',
+            phone: user.phone || '',
+            email: user.email || '',
+            gender: user.gender || '',
+            dob: user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString('en-GB') : ''
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [form, user]);
 
   const handleEdit = () => {
     setIsEditing(true);
-    form.setFieldsValue(initialValues);
   };
 
-  const handleSave = () => {
-    form.validateFields().then(() => {
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const values = await form.validateFields();
+      
+      const updateData = {
+        name: values.name,
+        phone: values.phone,
+        email: values.email,
+        gender: values.gender,
+        dateOfBirth: values.dob ? new Date(values.dob.split('/').reverse().join('-')).toISOString() : null
+      };
+
+      const response = await apiService.updateProfile(updateData);
+      login(response.data); // Update user context
+      message.success('Profile updated successfully');
       setIsEditing(false);
-      // Handle save logic here
-    });
+    } catch (error) {
+      message.error(error.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -39,14 +84,20 @@ const AccountOverview = () => {
   return (
     <AccountLayout title="My Account">
       <AccountContent>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px',
-          }}
-        >
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+              }}
+            >
           <Text
             style={{
               fontFamily: 'Josefin Sans, sans-serif',
@@ -76,6 +127,7 @@ const AccountOverview = () => {
                 type="primary"
                 icon={<SaveOutlined />}
                 onClick={handleSave}
+                loading={saving}
                 style={{
                   background: '#114D4D',
                   borderColor: '#114D4D',
@@ -97,7 +149,7 @@ const AccountOverview = () => {
           )}
         </div>
 
-        <Form form={form} layout="vertical" initialValues={initialValues}>
+        <Form form={form} layout="vertical">
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12}>
               <Form.Item
@@ -180,6 +232,8 @@ const AccountOverview = () => {
             </Col>
           </Row>
         </Form>
+          </>
+        )}
       </AccountContent>
     </AccountLayout>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Typography, Divider, Space, Button } from 'antd';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../../context/CartContext';
 
 const { Title, Text } = Typography;
 

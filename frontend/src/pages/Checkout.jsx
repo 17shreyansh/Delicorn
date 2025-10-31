@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Layout, Steps, Form, Input, Select, Button, Card, Row, Col, Typography, Space, Radio, message } from 'antd';
+import { Layout, Steps, Form, Input, Select, Button, Card, Row, Col, Typography, Space, Radio, message, Spin } from 'antd';
 import { CreditCardOutlined, EnvironmentOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import CartSummary from '../components/CartSummary';
+import { useUser } from '../context/UserContext';
+import { CartSummary } from '../components/cart';
+import apiService from '../services/api';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -11,9 +13,19 @@ const { Option } = Select;
 
 const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, getCartTotal } = useCart();
+  const { user, isAuthenticated } = useUser();
+
+  // Redirect if not authenticated
+  React.useEffect(() => {
+    if (!isAuthenticated()) {
+      message.error('Please login to continue');
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const steps = [
     {
@@ -40,10 +52,39 @@ const Checkout = () => {
     setCurrentStep(currentStep - 1);
   };
 
-  const handlePlaceOrder = () => {
-    message.success('Order placed successfully!');
-    clearCart();
-    navigate('/account/orders');
+  const handlePlaceOrder = async () => {
+    try {
+      setLoading(true);
+      const formData = await form.validateFields();
+      
+      const orderData = {
+        items: cartItems.map(item => ({
+          product: item._id || item.id,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        shippingAddress: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          phone: formData.phone
+        },
+        paymentMethod: formData.paymentMethod,
+        totalAmount: getCartTotal()
+      };
+
+      const response = await apiService.createOrder(orderData);
+      message.success('Order placed successfully!');
+      clearCart();
+      navigate('/account/orders');
+    } catch (error) {
+      message.error(error.message || 'Failed to place order');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderStepContent = () => {
@@ -119,7 +160,7 @@ const Checkout = () => {
           <Card title="Order Review">
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               {cartItems.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div key={item._id || item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <Text strong>{item.name}</Text>
                     <br />
@@ -160,7 +201,12 @@ const Checkout = () => {
                     Next
                   </Button>
                 ) : (
-                  <Button type="primary" onClick={handlePlaceOrder} style={{ marginLeft: 'auto' }}>
+                  <Button 
+                    type="primary" 
+                    onClick={handlePlaceOrder} 
+                    loading={loading}
+                    style={{ marginLeft: 'auto' }}
+                  >
                     Place Order
                   </Button>
                 )}
