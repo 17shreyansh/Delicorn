@@ -31,7 +31,12 @@ export const UserProvider = ({ children }) => {
     setUser(null);
     setWishlist([]);
     localStorage.removeItem('user');
-    await apiService.logout();
+    try {
+      await apiService.logout();
+    } catch (error) {
+      // Ignore logout errors - user is already being logged out
+      console.log('Logout request failed, but continuing with local logout');
+    }
   };
 
   const addToWishlist = async (product) => {
@@ -72,7 +77,12 @@ export const UserProvider = ({ children }) => {
         const response = await apiService.getWishlist();
         setWishlist(response.data || []);
       } catch (error) {
-        console.error('Failed to fetch wishlist:', error);
+        // If token is invalid, logout user
+        if (error.message.includes('Invalid token') || error.message.includes('Not authorized')) {
+          logout();
+        } else {
+          console.error('Failed to fetch wishlist:', error);
+        }
       }
     }
   };

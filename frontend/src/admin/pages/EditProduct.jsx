@@ -16,6 +16,7 @@ import {
   Divider,
   Space,
   Tabs,
+  Alert,
 } from 'antd';
 import {
   SaveOutlined,
@@ -25,6 +26,8 @@ import {
   InfoCircleOutlined,
   BulbOutlined,
   PictureOutlined,
+  StarOutlined,
+  HeartOutlined,
 } from '@ant-design/icons';
 import apiService from '../../services/api';
 
@@ -40,6 +43,7 @@ const EditProduct = () => {
   const [product, setProduct] = useState(null);
   const [fileList, setFileList] = useState([]);
   const [galleryFileList, setGalleryFileList] = useState([]);
+  const [selectedProductType, setSelectedProductType] = useState('');
 
   useEffect(() => {
     fetchProduct();
@@ -51,6 +55,7 @@ const EditProduct = () => {
       const productData = response.data;
       setProduct(productData);
       
+      setSelectedProductType(productData.productType);
       form.setFieldsValue({
         name: productData.name,
         slug: productData.slug,
@@ -63,6 +68,9 @@ const EditProduct = () => {
         availableColors: productData.availableColors || [],
         metalDetails: productData.metalDetails || [],
         benefits: productData.benefits || [],
+        spiritualBenefits: productData.spiritualBenefits || [],
+        fashionStyle: productData.fashionStyle || [],
+        occasion: productData.occasion || [],
         sizeVariants: productData.sizeVariants || [],
         isFeatured: productData.isFeatured,
         isActive: productData.isActive,
@@ -269,7 +277,10 @@ const EditProduct = () => {
                       name="productType"
                       rules={[{ required: true, message: 'Please select product type' }]}
                     >
-                      <Select placeholder="Select product type">
+                      <Select 
+                        placeholder="Select product type"
+                        onChange={(value) => setSelectedProductType(value)}
+                      >
                         <Option value="ashta-dhatu">Ashta Dhatu</Option>
                         <Option value="fashion-jewelry">Fashion Jewelry</Option>
                       </Select>
@@ -283,29 +294,62 @@ const EditProduct = () => {
               label: (<span><BulbOutlined /> Attributes & Stock</span>),
               children: (
                 <Row gutter={16}>
+                  {selectedProductType && (
+                    <Col span={24}>
+                      <Alert
+                        message={selectedProductType === 'ashta-dhatu' ? 'Ashta Dhatu Product' : 'Fashion Jewelry Product'}
+                        description={selectedProductType === 'ashta-dhatu' 
+                          ? 'Configure spiritual and traditional jewelry attributes'
+                          : 'Configure modern fashion jewelry attributes'
+                        }
+                        type="info"
+                        showIcon
+                        icon={selectedProductType === 'ashta-dhatu' ? <StarOutlined /> : <HeartOutlined />}
+                        style={{ marginBottom: 16 }}
+                      />
+                    </Col>
+                  )}
                   <Col span={24}>
                     <Form.Item label="Material" name="material">
-                      <Input placeholder="e.g., Gold, Silver, Ashta Dhatu" />
+                      <Input placeholder={selectedProductType === 'ashta-dhatu' 
+                        ? "e.g., Ashta Dhatu Alloy, Gold Plated" 
+                        : "e.g., Stainless Steel, Brass, Alloy"
+                      } />
                     </Form.Item>
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Available Colors" name="availableColors">
-                      <Select mode="tags" placeholder="Add colors (e.g., gold, silver, rose-gold)">
+                      <Select mode="tags" placeholder="Add colors">
                         <Option value="gold">Gold</Option>
                         <Option value="silver">Silver</Option>
                         <Option value="rose-gold">Rose Gold</Option>
+                        <Option value="antique-gold">Antique Gold</Option>
                         <Option value="black">Black</Option>
                         <Option value="white">White</Option>
+                        <Option value="copper">Copper</Option>
                       </Select>
                     </Form.Item>
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Metal Details" name="metalDetails">
                       <Select mode="tags" placeholder="Add metal details">
-                        <Option value="Ashta Dhatu alloy base">Ashta Dhatu alloy base</Option>
-                        <Option value="Precise gold plating">Precise gold plating</Option>
-                        <Option value="Premium quality finish">Premium quality finish</Option>
-                        <Option value="Hypoallergenic material">Hypoallergenic material</Option>
+                        {selectedProductType === 'ashta-dhatu' ? (
+                          <>
+                            <Option value="Ashta Dhatu alloy base">Ashta Dhatu alloy base</Option>
+                            <Option value="Eight sacred metals blend">Eight sacred metals blend</Option>
+                            <Option value="Traditional craftsmanship">Traditional craftsmanship</Option>
+                            <Option value="Spiritual significance">Spiritual significance</Option>
+                            <Option value="Vedic metal composition">Vedic metal composition</Option>
+                          </>
+                        ) : (
+                          <>
+                            <Option value="Premium quality finish">Premium quality finish</Option>
+                            <Option value="Hypoallergenic material">Hypoallergenic material</Option>
+                            <Option value="Tarnish resistant coating">Tarnish resistant coating</Option>
+                            <Option value="Nickel-free">Nickel-free</Option>
+                            <Option value="Lead-free">Lead-free</Option>
+                          </>
+                        )}
                       </Select>
                     </Form.Item>
                   </Col>
@@ -316,10 +360,58 @@ const EditProduct = () => {
                         <Option value="Durable & long-lasting finish">Durable & long-lasting finish</Option>
                         <Option value="Lightweight & comfortable">Lightweight & comfortable</Option>
                         <Option value="Tarnish resistant">Tarnish resistant</Option>
-                        <Option value="Spiritual significance">Spiritual significance</Option>
+                        <Option value="Water resistant">Water resistant</Option>
+                        <Option value="Easy maintenance">Easy maintenance</Option>
                       </Select>
                     </Form.Item>
                   </Col>
+                  {selectedProductType === 'ashta-dhatu' && (
+                    <Col span={24}>
+                      <Form.Item label="Spiritual Benefits" name="spiritualBenefits">
+                        <Select mode="tags" placeholder="Add spiritual benefits">
+                          <Option value="Positive energy enhancement">Positive energy enhancement</Option>
+                          <Option value="Chakra balancing properties">Chakra balancing properties</Option>
+                          <Option value="Astrological significance">Astrological significance</Option>
+                          <Option value="Spiritual protection">Spiritual protection</Option>
+                          <Option value="Meditation aid">Meditation aid</Option>
+                          <Option value="Vedic healing properties">Vedic healing properties</Option>
+                          <Option value="Divine blessings">Divine blessings</Option>
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                  )}
+                  {selectedProductType === 'fashion-jewelry' && (
+                    <>
+                      <Col span={24}>
+                        <Form.Item label="Fashion Style" name="fashionStyle">
+                          <Select mode="tags" placeholder="Add fashion styles">
+                            <Option value="Contemporary">Contemporary</Option>
+                            <Option value="Minimalist">Minimalist</Option>
+                            <Option value="Bohemian">Bohemian</Option>
+                            <Option value="Vintage">Vintage</Option>
+                            <Option value="Statement">Statement</Option>
+                            <Option value="Elegant">Elegant</Option>
+                            <Option value="Trendy">Trendy</Option>
+                            <Option value="Classic">Classic</Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={24}>
+                        <Form.Item label="Occasion" name="occasion">
+                          <Select mode="tags" placeholder="Add suitable occasions">
+                            <Option value="Daily wear">Daily wear</Option>
+                            <Option value="Party">Party</Option>
+                            <Option value="Wedding">Wedding</Option>
+                            <Option value="Office">Office</Option>
+                            <Option value="Casual">Casual</Option>
+                            <Option value="Formal">Formal</Option>
+                            <Option value="Festival">Festival</Option>
+                            <Option value="Date night">Date night</Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </>
+                  )}
                   <Col span={24}>
                     <Divider orientation="left">Size Variants</Divider>
                     <Form.List name="sizeVariants">

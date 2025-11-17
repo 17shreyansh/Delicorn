@@ -28,9 +28,7 @@ exports.protect = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error("Token verification error:", err);
-    
-    // Clear invalid token cookie
+    // Clear invalid token cookie silently
     res.clearCookie('token', {
       httpOnly: true,
       secure: false,
@@ -38,7 +36,10 @@ exports.protect = async (req, res, next) => {
       path: '/'
     });
     
-    return res.status(401).json({ message: "Invalid token, please log in again" });
+    return res.status(401).json({ 
+      message: "Invalid token, please log in again",
+      tokenExpired: true 
+    });
   }
 };
 
@@ -53,3 +54,14 @@ exports.isAdmin = (req, res, next) => {
 };
 
 exports.admin = exports.isAdmin; // Alias for consistency
+
+// Helper middleware to clear invalid tokens without logging errors
+exports.clearInvalidToken = (req, res, next) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'Lax',
+    path: '/'
+  });
+  next();
+};

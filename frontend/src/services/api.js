@@ -16,6 +16,16 @@ class ApiService {
       const response = await fetch(url, config);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // Handle token expiration
+        if (response.status === 401 && errorData.tokenExpired) {
+          // Clear local storage and redirect to login
+          localStorage.removeItem('user');
+          if (window.location.pathname !== '/login' && !window.location.pathname.startsWith('/admin')) {
+            window.location.href = '/login';
+          }
+        }
+        
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -201,7 +211,14 @@ class ApiService {
         method: 'POST',
       });
     } catch (error) {
-      console.error('Logout request failed:', error);
+      // Try to clear cookies even if logout fails
+      try {
+        await this.request('/auth/clear-cookies', {
+          method: 'POST',
+        });
+      } catch (clearError) {
+        console.error('Clear cookies failed:', clearError);
+      }
     } finally {
       localStorage.removeItem('user');
     }
