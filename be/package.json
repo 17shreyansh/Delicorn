@@ -9,8 +9,9 @@
     "server": "node server.js",
     "seed:admin": "node seeds/adminSeed.js",
     "seed:users": "node seeds/userSeed.js",
+    "seed:categories": "node seeds/categorySeed.js",
     "seed:products": "node seeds/productSeed.js",
-    "seed:all": "npm run seed:admin && npm run seed:users && npm run seed:products",
+    "seed:all": "npm run seed:admin && npm run seed:categories && npm run seed:users && npm run seed:products",
     "db:reset": "node -e \"require('./config/db'); const mongoose = require('mongoose'); mongoose.connection.once('open', async () => { await mongoose.connection.db.dropDatabase(); console.log('Database reset'); process.exit(0); });\""
   },
   "keywords": [],

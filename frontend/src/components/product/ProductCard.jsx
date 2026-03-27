@@ -62,7 +62,7 @@ const ProductCard = ({ product }) => {
         }}>
           <img
             alt={product.name}
-            src={product.mainImage ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${product.mainImage}` : product.image || '/placeholder-image.jpg'}
+            src={product.mainImage ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${product.mainImage}` : product.image}
             style={{
               width: '100%',
               height: '100%',
@@ -93,7 +93,7 @@ const ProductCard = ({ product }) => {
         <Button
           type="primary"
           onClick={handleAddToCart}
-          disabled={!product.isActive || !product.inStock}
+          disabled={!product.isActive || !product.inStock || product.totalStock <= 0}
           style={{
             background: '#0a5d5d', // Dark teal color from image
             borderColor: '#0a5d5d',
@@ -103,7 +103,7 @@ const ProductCard = ({ product }) => {
             padding: '8px 16px',
           }}
         >
-          {(product.isActive && product.inStock) ? 'Add to cart' : 'Out of Stock'}
+          {(product.isActive && product.inStock && product.totalStock > 0) ? 'Add to cart' : 'Out of Stock'}
         </Button>
       </div>
 

@@ -27,10 +27,11 @@ const productSchema = new mongoose.Schema({
   inStock: { type: Boolean, default: true },
   
   // Colors and materials
-  availableColors: [{ type: String }],
+  availableColors: { type: String },
   material: { type: String },
-  metalDetails: [{ type: String }],
-  benefits: [{ type: String }],
+  metalDetails: { type: String },
+  benefits: { type: String },
+  spiritualBenefits: { type: String },
   
   // Images
   image: { type: String, default: "placeholder.jpg" }, // Main image for frontend compatibility
@@ -63,10 +64,35 @@ productSchema.pre("save", function(next) {
   }
   
   // Calculate total stock from size variants
-  this.totalStock = this.sizeVariants.reduce((total, variant) => total + variant.stock, 0);
+  if (this.sizeVariants && this.sizeVariants.length > 0) {
+    this.totalStock = this.sizeVariants.reduce((total, variant) => total + (variant.stock || 0), 0);
+  } else {
+    this.totalStock = 0;
+  }
   this.inStock = this.totalStock > 0;
   this.reviews = this.reviewsCount;
   this.image = this.mainImage; // Sync for frontend compatibility
+  next();
+});
+
+// Pre-update hook for findOneAndUpdate, findByIdAndUpdate
+productSchema.pre(['findOneAndUpdate', 'findByIdAndUpdate'], function(next) {
+  const update = this.getUpdate();
+  
+  // Calculate stock if sizeVariants are being updated
+  if (update.sizeVariants || update.$set?.sizeVariants) {
+    const sizeVariants = update.sizeVariants || update.$set?.sizeVariants || [];
+    const totalStock = sizeVariants.reduce((total, variant) => total + (variant.stock || 0), 0);
+    
+    if (update.$set) {
+      update.$set.totalStock = totalStock;
+      update.$set.inStock = totalStock > 0;
+    } else {
+      update.totalStock = totalStock;
+      update.inStock = totalStock > 0;
+    }
+  }
+  
   next();
 });
 

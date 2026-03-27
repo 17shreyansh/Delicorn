@@ -38,6 +38,8 @@ const AddProduct = () => {
   const [saving, setSaving] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [galleryFileList, setGalleryFileList] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
     form.setFieldsValue({
@@ -45,7 +47,28 @@ const AddProduct = () => {
       isActive: true,
       isFeatured: false,
     });
+    fetchCategories();
   }, [productType, form]);
+
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const response = await apiService.getCategories();
+      const allCategories = response.data || [];
+      
+      // Filter categories by current product type
+      const filteredCategories = allCategories.filter(
+        cat => cat.productType === productType
+      );
+      
+      setCategories(filteredCategories);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      message.error('Failed to load categories');
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const onFinish = async (values) => {
     setSaving(true);
@@ -203,10 +226,24 @@ const AddProduct = () => {
                   <Col xs={24} sm={12}>
                     <Form.Item
                       label="Category"
-                      name="category"
-                      rules={[{ required: true, message: 'Please enter category' }]}
+                      name="categories"
+                      rules={[{ required: true, message: 'Please select at least one category' }]}
                     >
-                      <Input placeholder="e.g., Rings, Necklaces, Earrings" />
+                      <Select 
+                        mode="multiple"
+                        placeholder="Select categories"
+                        loading={loadingCategories}
+                        showSearch
+                        filterOption={(input, option) =>
+                          option.children.toLowerCase().includes(input.toLowerCase())
+                        }
+                      >
+                        {categories.map(cat => (
+                          <Option key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </Option>
+                        ))}
+                      </Select>
                     </Form.Item>
                   </Col>
                   <Col xs={24} sm={12}>
@@ -231,39 +268,27 @@ const AddProduct = () => {
                 <Row gutter={16}>
                   <Col span={24}>
                     <Form.Item label="Material" name="material">
-                      <Input placeholder={productType === 'ashta-dhatu' ? 'e.g., Gold, Silver, Ashta Dhatu' : 'e.g., Sterling Silver, Stainless Steel, Alloy'} />
+                      <TextArea rows={2} placeholder={productType === 'ashta-dhatu' ? 'e.g., Gold, Silver, Ashta Dhatu' : 'e.g., Sterling Silver, Stainless Steel, Alloy'} />
                     </Form.Item>
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Available Colors" name="availableColors">
-                      <Select mode="tags" placeholder="Add colors (e.g., gold, silver, rose-gold)">
-                        <Option value="gold">Gold</Option>
-                        <Option value="silver">Silver</Option>
-                        <Option value="rose-gold">Rose Gold</Option>
-                        <Option value="black">Black</Option>
-                        <Option value="white">White</Option>
-                      </Select>
+                      <TextArea rows={2} placeholder="e.g., Gold, Silver, Rose Gold, Black" />
                     </Form.Item>
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Metal Details" name="metalDetails">
-                      <Select mode="tags" placeholder="Add metal details">
-                        <Option value="Ashta Dhatu alloy base">Ashta Dhatu alloy base</Option>
-                        <Option value="Precise gold plating">Precise gold plating</Option>
-                        <Option value="Premium quality finish">Premium quality finish</Option>
-                        <Option value="Hypoallergenic material">Hypoallergenic material</Option>
-                      </Select>
+                      <TextArea rows={3} placeholder="Add metal details (one per line or comma separated)" />
                     </Form.Item>
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Benefits" name="benefits">
-                      <Select mode="tags" placeholder="Add product benefits">
-                        <Option value="Hypoallergenic & skin-friendly">Hypoallergenic & skin-friendly</Option>
-                        <Option value="Durable & long-lasting finish">Durable & long-lasting finish</Option>
-                        <Option value="Lightweight & comfortable">Lightweight & comfortable</Option>
-                        <Option value="Tarnish resistant">Tarnish resistant</Option>
-                        <Option value="Spiritual significance">Spiritual significance</Option>
-                      </Select>
+                      <TextArea rows={3} placeholder="Add product benefits (one per line or comma separated)" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={24}>
+                    <Form.Item label="Spiritual Benefits" name="spiritualBenefits">
+                      <TextArea rows={3} placeholder="Add spiritual benefits (one per line or comma separated)" />
                     </Form.Item>
                   </Col>
                   <Col span={24}>

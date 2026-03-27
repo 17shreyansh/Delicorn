@@ -44,10 +44,37 @@ const EditProduct = () => {
   const [fileList, setFileList] = useState([]);
   const [galleryFileList, setGalleryFileList] = useState([]);
   const [selectedProductType, setSelectedProductType] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    if (selectedProductType) {
+      fetchCategories();
+    }
+  }, [selectedProductType]);
+
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const response = await apiService.getCategories();
+      const allCategories = response.data || [];
+      
+      // Filter categories by current product type
+      const filteredCategories = allCategories.filter(
+        cat => cat.productType === selectedProductType
+      );
+      
+      setCategories(filteredCategories);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const fetchProduct = async () => {
     try {
@@ -62,15 +89,13 @@ const EditProduct = () => {
         description: productData.description,
         price: productData.price,
         originalPrice: productData.originalPrice,
-        category: productData.category,
+        categories: productData.categories || [],
         productType: productData.productType,
         material: productData.material,
-        availableColors: productData.availableColors || [],
-        metalDetails: productData.metalDetails || [],
-        benefits: productData.benefits || [],
-        spiritualBenefits: productData.spiritualBenefits || [],
-        fashionStyle: productData.fashionStyle || [],
-        occasion: productData.occasion || [],
+        availableColors: productData.availableColors,
+        metalDetails: productData.metalDetails,
+        benefits: productData.benefits,
+        spiritualBenefits: productData.spiritualBenefits,
         sizeVariants: productData.sizeVariants || [],
         isFeatured: productData.isFeatured,
         isActive: productData.isActive,
@@ -265,10 +290,24 @@ const EditProduct = () => {
                   <Col xs={24} sm={12}>
                     <Form.Item
                       label="Category"
-                      name="category"
-                      rules={[{ required: true, message: 'Please enter category' }]}
+                      name="categories"
+                      rules={[{ required: true, message: 'Please select at least one category' }]}
                     >
-                      <Input placeholder="e.g., Rings, Necklaces, Earrings" />
+                      <Select 
+                        mode="multiple"
+                        placeholder="Select categories"
+                        loading={loadingCategories}
+                        showSearch
+                        filterOption={(input, option) =>
+                          option.children.toLowerCase().includes(input.toLowerCase())
+                        }
+                      >
+                        {categories.map(cat => (
+                          <Option key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </Option>
+                        ))}
+                      </Select>
                     </Form.Item>
                   </Col>
                   <Col xs={24} sm={12}>
@@ -311,7 +350,7 @@ const EditProduct = () => {
                   )}
                   <Col span={24}>
                     <Form.Item label="Material" name="material">
-                      <Input placeholder={selectedProductType === 'ashta-dhatu' 
+                      <TextArea rows={2} placeholder={selectedProductType === 'ashta-dhatu' 
                         ? "e.g., Ashta Dhatu Alloy, Gold Plated" 
                         : "e.g., Stainless Steel, Brass, Alloy"
                       } />
@@ -319,99 +358,24 @@ const EditProduct = () => {
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Available Colors" name="availableColors">
-                      <Select mode="tags" placeholder="Add colors">
-                        <Option value="gold">Gold</Option>
-                        <Option value="silver">Silver</Option>
-                        <Option value="rose-gold">Rose Gold</Option>
-                        <Option value="antique-gold">Antique Gold</Option>
-                        <Option value="black">Black</Option>
-                        <Option value="white">White</Option>
-                        <Option value="copper">Copper</Option>
-                      </Select>
+                      <TextArea rows={2} placeholder="e.g., Gold, Silver, Rose Gold, Antique Gold" />
                     </Form.Item>
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Metal Details" name="metalDetails">
-                      <Select mode="tags" placeholder="Add metal details">
-                        {selectedProductType === 'ashta-dhatu' ? (
-                          <>
-                            <Option value="Ashta Dhatu alloy base">Ashta Dhatu alloy base</Option>
-                            <Option value="Eight sacred metals blend">Eight sacred metals blend</Option>
-                            <Option value="Traditional craftsmanship">Traditional craftsmanship</Option>
-                            <Option value="Spiritual significance">Spiritual significance</Option>
-                            <Option value="Vedic metal composition">Vedic metal composition</Option>
-                          </>
-                        ) : (
-                          <>
-                            <Option value="Premium quality finish">Premium quality finish</Option>
-                            <Option value="Hypoallergenic material">Hypoallergenic material</Option>
-                            <Option value="Tarnish resistant coating">Tarnish resistant coating</Option>
-                            <Option value="Nickel-free">Nickel-free</Option>
-                            <Option value="Lead-free">Lead-free</Option>
-                          </>
-                        )}
-                      </Select>
+                      <TextArea rows={3} placeholder="Add metal details (one per line or comma separated)" />
                     </Form.Item>
                   </Col>
                   <Col span={24}>
                     <Form.Item label="Benefits" name="benefits">
-                      <Select mode="tags" placeholder="Add product benefits">
-                        <Option value="Hypoallergenic & skin-friendly">Hypoallergenic & skin-friendly</Option>
-                        <Option value="Durable & long-lasting finish">Durable & long-lasting finish</Option>
-                        <Option value="Lightweight & comfortable">Lightweight & comfortable</Option>
-                        <Option value="Tarnish resistant">Tarnish resistant</Option>
-                        <Option value="Water resistant">Water resistant</Option>
-                        <Option value="Easy maintenance">Easy maintenance</Option>
-                      </Select>
+                      <TextArea rows={3} placeholder="Add product benefits (one per line or comma separated)" />
                     </Form.Item>
                   </Col>
-                  {selectedProductType === 'ashta-dhatu' && (
-                    <Col span={24}>
-                      <Form.Item label="Spiritual Benefits" name="spiritualBenefits">
-                        <Select mode="tags" placeholder="Add spiritual benefits">
-                          <Option value="Positive energy enhancement">Positive energy enhancement</Option>
-                          <Option value="Chakra balancing properties">Chakra balancing properties</Option>
-                          <Option value="Astrological significance">Astrological significance</Option>
-                          <Option value="Spiritual protection">Spiritual protection</Option>
-                          <Option value="Meditation aid">Meditation aid</Option>
-                          <Option value="Vedic healing properties">Vedic healing properties</Option>
-                          <Option value="Divine blessings">Divine blessings</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  )}
-                  {selectedProductType === 'fashion-jewelry' && (
-                    <>
-                      <Col span={24}>
-                        <Form.Item label="Fashion Style" name="fashionStyle">
-                          <Select mode="tags" placeholder="Add fashion styles">
-                            <Option value="Contemporary">Contemporary</Option>
-                            <Option value="Minimalist">Minimalist</Option>
-                            <Option value="Bohemian">Bohemian</Option>
-                            <Option value="Vintage">Vintage</Option>
-                            <Option value="Statement">Statement</Option>
-                            <Option value="Elegant">Elegant</Option>
-                            <Option value="Trendy">Trendy</Option>
-                            <Option value="Classic">Classic</Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                      <Col span={24}>
-                        <Form.Item label="Occasion" name="occasion">
-                          <Select mode="tags" placeholder="Add suitable occasions">
-                            <Option value="Daily wear">Daily wear</Option>
-                            <Option value="Party">Party</Option>
-                            <Option value="Wedding">Wedding</Option>
-                            <Option value="Office">Office</Option>
-                            <Option value="Casual">Casual</Option>
-                            <Option value="Formal">Formal</Option>
-                            <Option value="Festival">Festival</Option>
-                            <Option value="Date night">Date night</Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-                    </>
-                  )}
+                  <Col span={24}>
+                    <Form.Item label="Spiritual Benefits" name="spiritualBenefits">
+                      <TextArea rows={3} placeholder="Add spiritual benefits (one per line or comma separated)" />
+                    </Form.Item>
+                  </Col>
                   <Col span={24}>
                     <Divider orientation="left">Size Variants</Divider>
                     <Form.List name="sizeVariants">

@@ -7,7 +7,6 @@ import { Footer } from '../components/layout';
 import { Offer2 } from '../components';
 import apiService from '../services/api';
 import hero1 from '../assets/hero1.jpg';
-import p2 from '../assets/p2.png';
 
 const { Title } = Typography;
 
@@ -37,29 +36,29 @@ const FashionJewelry = () => {
   // Handle URL params for category filtering
   useEffect(() => {
     const category = searchParams.get('category');
-    if (category) {
+    if (category && allProducts.length > 0) {
       setSelectedCategory(category);
       filterProducts(category);
     }
   }, [searchParams, allProducts]);
 
-  const filterProducts = (categoryName) => {
-    if (categoryName === 'all') {
+  const filterProducts = (categoryId) => {
+    if (categoryId === 'all') {
       setProducts(allProducts);
     } else {
       const filtered = allProducts.filter(product => 
         product.categories?.some(cat => 
-          cat.name?.toLowerCase() === categoryName.toLowerCase()
+          cat._id === categoryId || cat === categoryId
         )
       );
       setProducts(filtered);
     }
   };
 
-  const handleCategoryClick = (categoryName) => {
-    setSelectedCategory(categoryName);
-    setSearchParams(categoryName === 'all' ? {} : { category: categoryName });
-    filterProducts(categoryName);
+  const handleCategoryClick = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setSearchParams(categoryId === 'all' ? {} : { category: categoryId });
+    filterProducts(categoryId);
   };
 
   const [categories, setCategories] = useState([]);
@@ -71,22 +70,10 @@ const FashionJewelry = () => {
         const fashionCategories = response.data?.filter(cat => 
           cat.productType === 'fashion-jewelry'
         ) || [];
-        setCategories(fashionCategories.length > 0 ? fashionCategories : [
-          { name: 'Earrings', image: p2, link: '/fashion-jewelry/earrings' },
-          { name: 'Necklaces', image: p2, link: '/fashion-jewelry/necklaces' },
-          { name: 'Bracelets', image: p2, link: '/fashion-jewelry/bracelets' },
-          { name: 'Rings', image: p2, link: '/fashion-jewelry/rings' },
-          { name: 'Anklets', image: p2, link: '/fashion-jewelry/anklets' }
-        ]);
+        setCategories(fashionCategories);
       } catch (error) {
         console.error('Failed to fetch categories:', error);
-        setCategories([
-          { name: 'Earrings', image: p2, link: '/fashion-jewelry/earrings' },
-          { name: 'Necklaces', image: p2, link: '/fashion-jewelry/necklaces' },
-          { name: 'Bracelets', image: p2, link: '/fashion-jewelry/bracelets' },
-          { name: 'Rings', image: p2, link: '/fashion-jewelry/rings' },
-          { name: 'Anklets', image: p2, link: '/fashion-jewelry/anklets' }
-        ]);
+        setCategories([]);
       }
     };
 
@@ -140,7 +127,7 @@ const FashionJewelry = () => {
               onClick={() => handleCategoryClick('all')}
             >
               <img
-                src={p2}
+                src={''}
                 alt="All Categories"
                 style={{
                   width: '150px',
@@ -148,7 +135,7 @@ const FashionJewelry = () => {
                   objectFit: 'cover',
                   borderRadius: '50%',
                   marginBottom: '10px',
-                  border: selectedCategory === 'all' ? '3px solid #114D4D' : '1px solid #114D4D'
+                  border: selectedCategory === 'all' ? '3px solid #114D4D' : '1px solid #ddd'
                 }}
               />
               <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', color: selectedCategory === 'all' ? '#114D4D' : '#333' }}>
@@ -160,10 +147,10 @@ const FashionJewelry = () => {
             <Col xs={12} sm={8} md={6} lg={4} xl={4} key={category._id || index}>
               <div 
                 style={{ textAlign: 'center', cursor: 'pointer' }}
-                onClick={() => handleCategoryClick(category.name)}
+                onClick={() => handleCategoryClick(category._id)}
               >
                 <img
-                  src={category.image ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${category.image}` : p2}
+                src={category.image ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${category.image}` : ''}
                   alt={category.name}
                   style={{
                     width: '150px',
@@ -171,10 +158,10 @@ const FashionJewelry = () => {
                     objectFit: 'cover',
                     borderRadius: '50%',
                     marginBottom: '10px',
-                    border: selectedCategory === category.name ? '3px solid #114D4D' : '1px solid #114D4D'
+                    border: selectedCategory === category._id ? '3px solid #114D4D' : '1px solid #ddd'
                   }}
                 />
-                <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', color: selectedCategory === category.name ? '#114D4D' : '#333' }}>
+                <Title level={4} style={{ fontFamily: "'Josefin Sans', sans-serif", fontWeight: '500', color: selectedCategory === category._id ? '#114D4D' : '#333' }}>
                   {category.name}
                 </Title>
               </div>
@@ -193,9 +180,9 @@ const FashionJewelry = () => {
                 items: [
                   { key: 'all', label: 'All Categories', onClick: () => handleCategoryClick('all') },
                   ...categories.map(cat => ({
-                    key: cat.name,
+                    key: cat._id,
                     label: cat.name,
-                    onClick: () => handleCategoryClick(cat.name)
+                    onClick: () => handleCategoryClick(cat._id)
                   })),
                   { key: 'price1', label: 'Price: Under ₹3000' },
                   { key: 'price2', label: 'Price: ₹3000-₹10000' },

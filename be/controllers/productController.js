@@ -35,14 +35,23 @@ exports.getProducts = async (req, res) => {
       sortBy, 
       search,
       inStock,
-      featured 
+      featured,
+      limit
     } = req.query;
     
     let query = { isActive: true };
 
     // Product type filter (ashta-dhatu or fashion-jewelry)
     if (productType) query.productType = productType;
-    if (category) query.productType = category; // Frontend compatibility
+    
+    // Category filter - check if it's an ObjectId
+    if (category) {
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        query.categories = category;
+      } else {
+        query.productType = category; // Fallback for old category names
+      }
+    }
     
     if (brand) query.brand = brand;
     if (gender) query.gender = gender;
@@ -56,12 +65,12 @@ exports.getProducts = async (req, res) => {
     
     if (color) {
       const colorsArray = color.split(',').map(c => c.trim());
-      query.availableColors = { $in: colorsArray };
+      query.availableColors = { $regex: new RegExp(colorsArray.join('|'), 'i') };
     }
     
     if (size) {
-      const sizesArray = size.split(',').map(s => parseFloat(s.trim()));
-      query.availableSizes = { $in: sizesArray };
+      const sizesArray = size.split(',').map(s => s.trim());
+      query['sizeVariants.size'] = { $in: sizesArray };
     }
 
     // Price range filter
@@ -88,7 +97,6 @@ exports.getProducts = async (req, res) => {
             { material: new RegExp(term, 'i') },
             { productType: new RegExp(term, 'i') },
             { gender: new RegExp(term, 'i') },
-
           ]
         }));
         
@@ -96,7 +104,7 @@ exports.getProducts = async (req, res) => {
       }
     }
 
-    let productsQuery = Product.find(query);
+    let productsQuery = Product.find(query).populate('categories', 'name slug');
 
     // Sorting
     if (sortBy === "priceAsc") productsQuery = productsQuery.sort({ price: 1 });
@@ -105,6 +113,9 @@ exports.getProducts = async (req, res) => {
     else if (sortBy === "rating") productsQuery = productsQuery.sort({ rating: -1 });
     else if (sortBy === "featured") productsQuery = productsQuery.sort({ isFeatured: -1, createdAt: -1 });
     else productsQuery = productsQuery.sort({ createdAt: -1 });
+
+    // Limit
+    if (limit) productsQuery = productsQuery.limit(parseInt(limit));
 
     const products = await productsQuery.exec();
     res.json({ success: true, data: products });
@@ -123,11 +134,11 @@ exports.getProductById = async (req, res) => {
     let product;
 
     // First try to find by slug
-    product = await Product.findOne({ slug: identifier, isActive: true });
+    product = await Product.findOne({ slug: identifier, isActive: true }).populate('categories', 'name slug');
     
     // If not found and identifier looks like an ObjectId, try finding by ID
     if (!product && mongoose.Types.ObjectId.isValid(identifier)) {
-      product = await Product.findOne({ _id: identifier, isActive: true });
+      product = await Product.findOne({ _id: identifier, isActive: true }).populate('categories', 'name slug');
       if (product) {
         // Redirect to slug-based URL
         return res.redirect(301, `/api/products/${product.slug}`);
@@ -158,6 +169,7 @@ exports.getProductsByType = async (req, res) => {
     }
 
     let query = Product.find({ productType: type, isActive: true })
+      .populate('categories', 'name slug')
       .limit(parseInt(limit));
 
     if (sortBy === 'featured') query = query.sort({ isFeatured: -1, createdAt: -1 });
@@ -182,7 +194,6 @@ exports.getRelatedProducts = async (req, res) => {
     const { limit = 4 } = req.query;
     
     let product;
-    // Try to find by slug first, then by ID
     product = await Product.findOne({ slug: identifier, isActive: true });
     if (!product && mongoose.Types.ObjectId.isValid(identifier)) {
       product = await Product.findOne({ _id: identifier, isActive: true });
@@ -197,6 +208,7 @@ exports.getRelatedProducts = async (req, res) => {
       productType: product.productType,
       isActive: true
     })
+    .populate('categories', 'name slug')
     .limit(parseInt(limit))
     .sort({ rating: -1, createdAt: -1 });
 
@@ -233,6 +245,13 @@ exports.updateProduct = async (req, res) => {
           await uploadService.deleteFileByUrl(oldUrl);
         }
       }
+    }
+
+    // Calculate stock before updating
+    if (req.body.sizeVariants) {
+      const totalStock = req.body.sizeVariants.reduce((total, variant) => total + (variant.stock || 0), 0);
+      req.body.totalStock = totalStock;
+      req.body.inStock = totalStock > 0;
     }
 
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
@@ -293,8 +312,16 @@ exports.updateStock = async (req, res) => {
       product.sizeVariants.push({ size, stock });
     }
 
+    // Recalculate total stock
+    product.totalStock = product.sizeVariants.reduce((total, v) => total + (v.stock || 0), 0);
+    product.inStock = product.totalStock > 0;
+
     await product.save();
-    res.json({ message: "Stock updated successfully", totalStock: product.totalStock });
+    res.json({ 
+      message: "Stock updated successfully", 
+      totalStock: product.totalStock,
+      inStock: product.inStock
+    });
   } catch (err) {
     console.error("Error updating stock:", err);
     res.status(400).json({ error: err.message });

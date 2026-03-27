@@ -126,11 +126,11 @@ const CartCheckout = () => {
           <Row gutter={[32, 32]}>
             <Col xs={24} lg={16}>
               {cartItems.map((item, i) => (
-                <Card key={item.id || i} style={styles.card}>
+                <Card key={item._id || item.id || i} style={styles.card}>
                   <Row align="middle" gutter={[16, 16]}>
                     <Col span={4}>
                       <img
-                        src={item.image || item.mainImage || 'https://via.placeholder.com/80x80.png?text=Product'}
+                        src={item.mainImage ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${item.mainImage}` : (item.image || 'https://via.placeholder.com/80x80.png?text=Product')}
                         alt={item.name}
                         style={{
                           width: "100%",
@@ -144,10 +144,10 @@ const CartCheckout = () => {
                         {item.name}
                       </Title>
                       <Text type="secondary">
-                        Product Type: {item.productType || 'N/A'}
+                        Product Type: {item.productType === 'ashta-dhatu' ? 'Ashta Dhatu' : item.productType === 'fashion-jewelry' ? 'Fashion Jewelry' : 'N/A'}
                       </Text>
                       <br />
-                      <Text strong>₹{item.price}</Text>
+                      <Text strong>₹{item.price.toFixed(2)}</Text>
                     </Col>
                     <Col span={4} style={{ textAlign: "center" }}>
                       <Text>Quantity</Text>
@@ -155,7 +155,7 @@ const CartCheckout = () => {
                         min={1} 
                         max={10} 
                         value={item.quantity || 1}
-                        onChange={(value) => updateQuantity(item.id, value)}
+                        onChange={(value) => updateQuantity(item._id || item.id, value)}
                       />
                     </Col>
                     <Col span={6} style={{ textAlign: "right" }}>
@@ -166,7 +166,7 @@ const CartCheckout = () => {
                         danger
                         icon={<DeleteOutlined />}
                         style={{ marginTop: 5 }}
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item._id || item.id)}
                       >
                         Remove
                       </Button>

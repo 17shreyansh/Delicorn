@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Select, Typography, Input, Space, Spin } from 'antd';
+import { Row, Col, Select, Typography, Input, Space, Spin, Empty, Button } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
-import { allProducts } from '../../data/products';
 import apiService from '../../services/api';
 
 const { Title } = Typography;
@@ -44,10 +43,12 @@ const ProductsGrid = () => {
           apiService.getCategories(),
           apiService.getBrands()
         ]);
-        setCategories(categoriesData || []);
-        setBrands(brandsData || []);
+        setCategories(categoriesData.data || []);
+        setBrands(brandsData.data || []);
       } catch (error) {
         console.error('Failed to fetch initial data:', error);
+        setCategories([]);
+        setBrands([]);
       }
     };
     fetchInitialData();
@@ -62,15 +63,16 @@ const ProductsGrid = () => {
         if (searchTerm) filters.search = searchTerm;
         if (filterCategory !== 'all') filters.category = filterCategory;
         if (filterBrand !== 'all') filters.brand = filterBrand;
-        if (sortBy) filters.sort = sortBy;
+        if (sortBy) filters.sortBy = sortBy;
         
         const response = await apiService.getProducts(filters);
-        setProducts(response.products || response || []);
-        setTotalProducts(response.total || response.length || 0);
+        const fetchedProducts = response.data || [];
+        setProducts(fetchedProducts);
+        setTotalProducts(fetchedProducts.length);
       } catch (error) {
         console.error('Failed to fetch products:', error);
-        setProducts(allProducts);
-        setTotalProducts(allProducts.length);
+        setProducts([]);
+        setTotalProducts(0);
       } finally {
         setLoading(false);
       }
@@ -199,14 +201,34 @@ const ProductsGrid = () => {
 
         {!loading && products.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <Title level={4} type="secondary">
-              {searchTerm ? `No products found for "${searchTerm}"` : 'No products found matching your criteria'}
-            </Title>
-            {searchTerm && (
-              <p style={{ color: '#999', marginTop: '10px' }}>
-                Try adjusting your search terms or filters
-              </p>
-            )}
+            <Empty
+              description={
+                searchTerm 
+                  ? `No products found for "${searchTerm}"` 
+                  : 'No products found matching your criteria'
+              }
+            >
+              {searchTerm && (
+                <p style={{ color: '#999', marginTop: '10px', marginBottom: '20px' }}>
+                  Try adjusting your search terms or filters
+                </p>
+              )}
+              <Button 
+                type="primary" 
+                onClick={() => {
+                  setSearchTerm('');
+                  setFilterCategory('all');
+                  setFilterBrand('all');
+                  updateURL({ search: '', category: 'all', brand: 'all', sort: sortBy });
+                }}
+                style={{
+                  background: '#114D4D',
+                  borderColor: '#114D4D'
+                }}
+              >
+                Clear Filters
+              </Button>
+            </Empty>
           </div>
         )}
       </div>

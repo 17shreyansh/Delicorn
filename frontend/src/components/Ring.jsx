@@ -40,8 +40,8 @@ export default function Ring() {
 
   return (
     <div style={sectionStyle}>
-      <h2 style={upperHeadingStyle}>More Than Jewellery</h2>
-      <h1 style={lowerHeadingStyle}>Ashtadhatu : Statement of Soul & Style</h1>
+      {/* <h2 style={upperHeadingStyle}>More Than Jewellery</h2>
+      <h1 style={lowerHeadingStyle}>Ashtadhatu : Statement of Soul & Style</h1> */}
       <img src={ringImage} alt="Ring" style={imageStyle} />
     </div>
   );

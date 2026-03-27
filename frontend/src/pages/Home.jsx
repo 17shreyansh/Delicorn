@@ -24,7 +24,16 @@ const Home = () => {
       <Collections />
       <CTA />
       <JewellerySale />
-      <FeaturedProducts />
+      <FeaturedProducts 
+        productType="ashta-dhatu" 
+        title="Ashtadhatu : Statement of Soul & Style" 
+        limit={4}
+      />
+      <FeaturedProducts 
+        productType="fashion-jewelry" 
+        title="Sacred Pendants & Bracelets" 
+        limit={4}
+      />
       <Ring />
       <Slider />
       <Footer />

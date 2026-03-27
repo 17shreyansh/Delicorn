@@ -25,7 +25,9 @@ const searchRoutes = require('./routes/searchRoutes'); // Import search routes
 const deliveryRoutes = require('./routes/deliveryRoutes'); // Import delivery routes
 const addressRoutes = require('./routes/addressRoutes'); // Import address routes
 const returnRoutes = require('./routes/returnRoutes'); // Import return routes
+const debugRoutes = require('./routes/debugRoutes'); // Import debug routes
 const OrderService = require('./services/OrderService');
+const { initializeProductStock } = require('./utils/initializeStock'); // Import stock initializer
 const cron = require('node-cron');
 
 // Initialize services and setup
@@ -33,6 +35,9 @@ const initializeServices = async () => {
     try {
         // Connect to database
         await connectDB();
+
+        // Initialize product stock
+        await initializeProductStock();
 
         // Initialize OrderService
         const orderService = new OrderService();
@@ -102,6 +107,7 @@ app.use('/api/search', searchRoutes); // NEW: Search routes
 app.use('/api/delivery', deliveryRoutes); // NEW: Delivery routes
 app.use('/api/user/addresses', addressRoutes); // NEW: Address routes
 app.use('/api/returns', returnRoutes); // NEW: Return routes
+app.use('/api/debug', debugRoutes); // NEW: Debug routes (remove in production)
 
 
 

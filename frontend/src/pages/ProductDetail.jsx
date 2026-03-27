@@ -31,19 +31,12 @@ import {
   InboxOutlined,
 } from '@ant-design/icons';
 import { Link, useParams } from 'react-router-dom';
-import { getProductById, getRelatedProducts } from '../data/products';
 import apiService from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useUser } from '../context/UserContext';
 import { ProductCard } from '../components/product';
 import { Footer as WebsiteFooter } from '../components/layout';
 import pg from '../assets/pg.jpg';
-import c1 from '../assets/c1.jpg';
-import c2 from '../assets/c2.jpg';
-import c3 from '../assets/c3.jpg';
-import c4 from '../assets/c4.jpg';
-import c5 from '../assets/c5.jpg';
-import ring from '../assets/ring.jpg';
 
 const { Content, Footer } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -83,10 +76,8 @@ const ProductDetail = () => {
         setRelatedProducts(relatedResponse.data || []);
       } catch (error) {
         console.error('Failed to fetch product:', error);
-        // Fallback to static data
-        const staticProduct = getProductById(slug);
-        setProduct(staticProduct);
-        setRelatedProducts(getRelatedProducts(slug, staticProduct?.category) || []);
+        setProduct(null);
+        setRelatedProducts([]);
       } finally {
         setProductLoading(false);
       }
@@ -116,14 +107,11 @@ const ProductDetail = () => {
       }
     }
     
-    // Fallback to static images if no product images
-    if (images.length === 0) {
-      images.push(...[c1, c2, c3, c4, c5, ring]);
-    }
-    
     setProductImages(images);
-    setMainImage(images[0]);
-    setCurrentImageIndex(0);
+    if (images.length > 0) {
+      setMainImage(images[0]);
+      setCurrentImageIndex(0);
+    }
   }, [product]);
 
   if (productLoading) {
@@ -450,8 +438,21 @@ const ProductDetail = () => {
                 {/* In stock info */}
                 <div style={{ marginTop: 24 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 16 : 0 }}>
-                    <InboxOutlined style={{ color: '#0d4b4b' }} />
-                    <Text style={{ fontFamily: "'Josefin Sans', sans-serif" }}>In stock - ready to ship</Text>
+                    {product.inStock && product.totalStock > 0 ? (
+                      <>
+                        <InboxOutlined style={{ color: '#0d4b4b' }} />
+                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#0d4b4b' }}>
+                          In stock - ready to ship ({product.totalStock} available)
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <InboxOutlined style={{ color: '#ff4d4f' }} />
+                        <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#ff4d4f' }}>
+                          Out of stock
+                        </Text>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -470,15 +471,15 @@ const ProductDetail = () => {
                         fontFamily: "'Josefin Sans', sans-serif",
                         color: '#003333'
                       }}>Color:</Text>
-                      {product.availableColors && product.availableColors.length > 0 ? (
-                        product.availableColors.map((color, index) => (
+                      {product.availableColors && typeof product.availableColors === 'string' && product.availableColors.trim() ? (
+                        product.availableColors.split(/[,\n]/).filter(c => c.trim()).map((color, index) => (
                           <div
                             key={index}
                             style={{
                               width: 22,
                               height: 22,
                               borderRadius: '50%',
-                              background: color.toLowerCase(),
+                              background: color.trim().toLowerCase(),
                               border: index === 0 ? '2px solid #0d4b4b' : '1px solid #ddd',
                               cursor: 'pointer'
                             }}
@@ -523,15 +524,15 @@ const ProductDetail = () => {
                       fontFamily: "'Josefin Sans', sans-serif",
                       color: '#003333'
                     }}>Color</Text>
-                    {product.availableColors && product.availableColors.length > 0 ? (
-                      product.availableColors.map((color, index) => (
+                    {product.availableColors && typeof product.availableColors === 'string' && product.availableColors.trim() ? (
+                      product.availableColors.split(/[,\n]/).filter(c => c.trim()).map((color, index) => (
                         <div
                           key={index}
                           style={{
                             width: 22,
                             height: 22,
                             borderRadius: '50%',
-                            background: color.toLowerCase(),
+                            background: color.trim().toLowerCase(),
                             border: index === 0 ? '2px solid #0d4b4b' : '1px solid #ddd',
                             cursor: 'pointer'
                           }}
@@ -561,7 +562,7 @@ const ProductDetail = () => {
                         icon={<ShoppingCartOutlined />}
                         size="large"
                         onClick={handleAddToCart}
-                        disabled={!product.isActive || !product.inStock}
+                        disabled={!product.isActive || !product.inStock || product.totalStock <= 0}
                         style={{
                           background: '#0d4b4b',
                           borderColor: '#0d4b4b',
@@ -650,63 +651,62 @@ const ProductDetail = () => {
                       children: <Paragraph style={{ margin: 0, color: '#666', lineHeight: 1.6, fontFamily: "'Josefin Sans', sans-serif", fontSize: '15px' }}>{product.description}</Paragraph>,
                       style: { border: 'none', marginBottom: 8, background: '#f8f9fa', borderRadius: 8 }
                     },
-                    {
+                    product.material && {
                       key: '2',
-                      label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>METAL DETAILS</Text>,
+                      label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>MATERIAL</Text>,
                       children: (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          {product.metalDetails && product.metalDetails.length > 0 ? (
-                            product.metalDetails.map((detail, index) => (
-                              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
-                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{detail}</Text>
-                              </div>
-                            ))
-                          ) : (
-                            <>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
-                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Ashta Dhatu alloy base</Text>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
-                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Precise gold plating</Text>
-                              </div>
-                            </>
-                          )}
+                        <div style={{ whiteSpace: 'pre-wrap' }}>
+                          <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{product.material}</Text>
                         </div>
                       ),
                       style: { border: 'none', marginBottom: 8, background: '#f8f9fa', borderRadius: 8 }
                     },
-                    {
+                    product.metalDetails && {
                       key: '3',
+                      label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>METAL DETAILS</Text>,
+                      children: (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {product.metalDetails.split(/[\n,]/).filter(d => d.trim()).map((detail, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0d4b4b' }} />
+                              <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{detail.trim()}</Text>
+                            </div>
+                          ))}
+                        </div>
+                      ),
+                      style: { border: 'none', marginBottom: 8, background: '#f8f9fa', borderRadius: 8 }
+                    },
+                    product.benefits && {
+                      key: '4',
                       label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>BENEFITS</Text>,
                       children: (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          {product.benefits && product.benefits.length > 0 ? (
-                            product.benefits.map((benefit, index) => (
-                              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
-                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{benefit}</Text>
-                              </div>
-                            ))
-                          ) : (
-                            <>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
-                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Hypoallergenic & skin-friendly</Text>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
-                                <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>Durable & long-lasting finish</Text>
-                              </div>
-                            </>
-                          )}
+                          {product.benefits.split(/[\n,]/).filter(b => b.trim()).map((benefit, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
+                              <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{benefit.trim()}</Text>
+                            </div>
+                          ))}
+                        </div>
+                      ),
+                      style: { border: 'none', marginBottom: 8, background: '#f8f9fa', borderRadius: 8 }
+                    },
+                    product.spiritualBenefits && {
+                      key: '5',
+                      label: <Text strong style={{ fontSize: '16px', color: '#000000', fontFamily: "'Josefin Sans', sans-serif", fontWeight: 400 }}>SPIRITUAL BENEFITS</Text>,
+                      children: (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {product.spiritualBenefits.split(/[\n,]/).filter(s => s.trim()).map((benefit, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <CheckCircleFilled style={{ color: '#0d4b4b', fontSize: '14px' }} />
+                              <Text style={{ fontFamily: "'Josefin Sans', sans-serif", color: '#666' }}>{benefit.trim()}</Text>
+                            </div>
+                          ))}
                         </div>
                       ),
                       style: { border: 'none', background: '#f8f9fa', borderRadius: 8 }
-                    }
-                  ]}
+                    },
+                  ].filter(Boolean)}
                 />
               </div>
             </Col>
@@ -832,7 +832,7 @@ const ProductDetail = () => {
             icon={<ShoppingCartOutlined />}
             size="large"
             onClick={handleAddToCart}
-            disabled={!product.inStock}
+            disabled={!product.inStock || product.totalStock <= 0}
             style={{
               background: '#0d4b4b',
               borderColor: '#0d4b4b',

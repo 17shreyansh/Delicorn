@@ -1,17 +1,33 @@
-import React from "react";
-import { Layout, Row, Col, Input, Button, Typography, Space } from "antd";
+import React, { useState } from "react";
+import { Layout, Row, Col, Input, Button, Typography, Space, message } from "antd";
 import {
   InstagramOutlined,
   FacebookOutlined,
   TwitterOutlined,
   YoutubeOutlined,
 } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
 
 const { Footer: AntFooter } = Layout;
 const { Title, Text } = Typography;
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+
+  const handleSubscribe = () => {
+    if (!email) {
+      message.warning("Please enter your email");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      message.error("Please enter a valid email");
+      return;
+    }
+    message.success("Successfully subscribed!");
+    setEmail("");
+  };
+
   return (
     <AntFooter
       style={{
@@ -47,6 +63,9 @@ const Footer = () => {
           <div style={{ display: "flex", gap: "10px", marginBottom: "24px" }}>
             <Input
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onPressEnter={handleSubscribe}
               style={{
                 flex: 1,
                 borderRadius: "2px",
@@ -57,6 +76,7 @@ const Footer = () => {
               }}
             />
             <Button
+              onClick={handleSubscribe}
               style={{
                 backgroundColor: "#004d40",
                 color: "white",
@@ -100,11 +120,11 @@ const Footer = () => {
             Quick Links
           </Title>
           <Space direction="vertical" size="small">
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Home</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Shop AshtaDhatu</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Shop Fashion</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>About Us</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Contact</Text>
+            <Link to="/" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Home</Link>
+            <Link to="/ashta-dhatu" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Shop AshtaDhatu</Link>
+            <Link to="/fashion-jewelry" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Shop Fashion</Link>
+            <Link to="/about-us" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>About Us</Link>
+            <Link to="/contact-us" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Contact</Link>
           </Space>
         </Col>
 
@@ -122,14 +142,14 @@ const Footer = () => {
             Policies
           </Title>
           <Space direction="vertical" size="small">
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Shipping</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Returns</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Privacy Policy</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Terms</Text>
+            <Link to="/return-refund" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Shipping</Link>
+            <Link to="/return-refund" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Returns</Link>
+            <Link to="/return-refund" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Privacy Policy</Link>
+            <Link to="/return-refund" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Terms</Link>
           </Space>
         </Col>
 
-        {/* Policies 2 */}
+        {/* Customer Care */}
         <Col xs={24} sm={8} md={4}>
           <Title
             level={5}
@@ -140,13 +160,13 @@ const Footer = () => {
               fontFamily: "'Josefin Sans', sans-serif",
             }}
           >
-            Policies
+            Customer Care
           </Title>
           <Space direction="vertical" size="small">
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Shipping</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Returns</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Privacy Policy</Text>
-            <Text style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>Terms</Text>
+            <Link to="/contact-us" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>FAQ</Link>
+            <Link to="/account/orders" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Track Order</Link>
+            <Link to="/contact-us" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Support</Link>
+            <Link to="/contact-us" style={{ fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif", color: "#000" }}>Contact Us</Link>
           </Space>
         </Col>
       </Row>
@@ -166,10 +186,18 @@ const Footer = () => {
         <Text style={{ marginRight: "10px", color: "#000", fontSize: "15px", fontFamily: "'Josefin Sans', sans-serif" }}>
           Follow us
         </Text>
-        <InstagramOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
-        <FacebookOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
-        <TwitterOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
-        <YoutubeOutlined style={{ fontSize: "20px", cursor: "pointer" }} />
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+          <InstagramOutlined style={{ fontSize: "20px", cursor: "pointer", color: "#000" }} />
+        </a>
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+          <FacebookOutlined style={{ fontSize: "20px", cursor: "pointer", color: "#000" }} />
+        </a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+          <TwitterOutlined style={{ fontSize: "20px", cursor: "pointer", color: "#000" }} />
+        </a>
+        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+          <YoutubeOutlined style={{ fontSize: "20px", cursor: "pointer", color: "#000" }} />
+        </a>
       </div>
 
       {/* Bottom Strip */}
@@ -186,9 +214,9 @@ const Footer = () => {
         }}
       >
         <Text style={{ color: "white", fontSize: "14px", fontFamily: "'Josefin Sans', sans-serif" }}>
-          <span style={{ cursor: "pointer" }}>Privacy Policy</span>
+          <Link to="/return-refund" style={{ color: "white" }}>Privacy Policy</Link>
           {" | "}
-          <span style={{ cursor: "pointer" }}>Terms and Conditions</span>
+          <Link to="/return-refund" style={{ color: "white" }}>Terms and Conditions</Link>
           {" | "}
           Made with love and craft by AFFOBE
         </Text>
