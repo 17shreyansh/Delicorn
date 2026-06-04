@@ -88,12 +88,23 @@ class OrderService {
 
         // Calculate Delivery Charge
         const deliveryChargeDoc = await DeliveryCharge.findOne({
-            city: shippingAddress.city?.toLowerCase(),
-            state: shippingAddress.state?.toLowerCase()
+            city: shippingAddress.city?.toUpperCase(),
+            state: shippingAddress.state?.toUpperCase(),
+            isActive: true
         });
         
-        // Default delivery charge if no specific city/state charge is found
-        let deliveryCharge = deliveryChargeDoc ? deliveryChargeDoc.charge : 50; // Default to 50 if no charge found
+        // Get default delivery charge from settings or fallback to 50
+        const DefaultDeliverySettings = require('../models/DefaultDeliverySettings');
+        const defaultSettings = await DefaultDeliverySettings.findOne({ settingName: 'GLOBAL_DEFAULT_DELIVERY' });
+        const defaultCharge = defaultSettings?.charge || 50;
+        
+        let deliveryCharge = deliveryChargeDoc ? deliveryChargeDoc.charge : defaultCharge;
+        
+        // Check for free delivery threshold
+        const freeDeliveryThreshold = deliveryChargeDoc?.freeDeliveryThreshold || defaultSettings?.freeDeliveryThreshold;
+        if (freeDeliveryThreshold && subtotal >= freeDeliveryThreshold) {
+            deliveryCharge = 0;
+        }
         
         // Validate numeric values
         if (typeof subtotal !== 'number' || isNaN(subtotal)) {

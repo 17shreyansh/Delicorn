@@ -57,30 +57,42 @@ const Checkout = () => {
       setLoading(true);
       const formData = await form.validateFields();
       
+      // Validate cart items
+      if (!cartItems || cartItems.length === 0) {
+        message.error('Your cart is empty');
+        return;
+      }
+      
       const orderData = {
         items: cartItems.map(item => ({
-          product: item._id || item.id,
-          quantity: item.quantity,
-          price: item.price
+          _id: item._id || item.id,
+          quantity: item.quantity || 1,
+          size: item.size || item.selectedSize || 'One Size',
+          color: item.color || item.selectedColor || 'Default'
         })),
         shippingAddress: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
+          fullName: `${formData.firstName} ${formData.lastName}`,
           address: formData.address,
-          city: formData.city,
+          city: formData.city?.toUpperCase(),
           state: formData.state,
           pincode: formData.pincode,
-          phone: formData.phone
+          phone: formData.phone,
+          email: user?.email || formData.email || ''
         },
-        paymentMethod: formData.paymentMethod,
-        totalAmount: getCartTotal()
+        paymentMethod: formData.paymentMethod?.toUpperCase() === 'COD' ? 'COD' : 'RAZORPAY'
       };
 
       const response = await apiService.createOrder(orderData);
-      message.success('Order placed successfully!');
-      clearCart();
-      navigate('/account/orders');
+      
+      if (response.success) {
+        message.success('Order placed successfully!');
+        clearCart();
+        navigate('/account/orders');
+      } else {
+        message.error(response.message || 'Failed to place order');
+      }
     } catch (error) {
+      console.error('Order error:', error);
       message.error(error.message || 'Failed to place order');
     } finally {
       setLoading(false);
@@ -110,18 +122,24 @@ const Checkout = () => {
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={8}>
-                  <Form.Item name="city" label="City" rules={[{ required: true }]}>
-                    <Input />
+                  <Form.Item name="state" label="State" rules={[{ required: true }]}>
+                    <Select>
+                      <Option value="MAHARASHTRA">Maharashtra</Option>
+                      <Option value="DELHI">Delhi</Option>
+                      <Option value="KARNATAKA">Karnataka</Option>
+                      <Option value="GUJARAT">Gujarat</Option>
+                      <Option value="UTTAR PRADESH">Uttar Pradesh</Option>
+                      <Option value="TAMIL NADU">Tamil Nadu</Option>
+                      <Option value="WEST BENGAL">West Bengal</Option>
+                      <Option value="RAJASTHAN">Rajasthan</Option>
+                      <Option value="PUNJAB">Punjab</Option>
+                      <Option value="HARYANA">Haryana</Option>
+                    </Select>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={8}>
-                  <Form.Item name="state" label="State" rules={[{ required: true }]}>
-                    <Select>
-                      <Option value="maharashtra">Maharashtra</Option>
-                      <Option value="delhi">Delhi</Option>
-                      <Option value="karnataka">Karnataka</Option>
-                      <Option value="gujarat">Gujarat</Option>
-                    </Select>
+                  <Form.Item name="city" label="City" rules={[{ required: true }]}>
+                    <Input placeholder="Enter city name" style={{ textTransform: 'uppercase' }} />
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={8}>

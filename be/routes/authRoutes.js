@@ -14,7 +14,8 @@ const {
     deactivateAccount,
     reactivateAccount,
     checkAdmin,
-    clearCookies
+    clearCookies,
+    getAdmins
 } = require("../controllers/authController");
 const { protect, isAdmin } = require("../middleware/authMiddleware"); // Ensure middleware is correct
 
@@ -67,6 +68,9 @@ router.get("/users", protect, isAdmin, async (req, res) => {
         res.status(500).json({ message: "Server error fetching users." });
     }
 });
+
+// Get all admin users for ticket assignment
+router.get("/admins", protect, isAdmin, getAdmins);
 
 
 module.exports = router;

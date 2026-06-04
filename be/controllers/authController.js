@@ -12,25 +12,34 @@ const sendTokenResponse = (user, statusCode, res) => {
     });
 
     const options = {
-        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000), // Cookie expiration
-        httpOnly: true, // Makes the cookie inaccessible to client-side scripts
-        secure: false, // Set to false for development
-        sameSite: 'Lax', // Lax for development
-        path: '/' // Ensure cookie is available for all paths
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        path: '/'
     };
 
     // Update user's last login timestamp
     user.lastLogin = new Date();
     user.save({ validateBeforeSave: false }); // Save without re-running schema validators for this update
 
-    // Send the response with the token in a cookie and user data
-    res.status(statusCode).cookie('token', token, options).json({
-        success: true,
-        user: {
-            ...user.getSafeData(),
-            isEmailVerified: user.isEmailVerified
-        }
-    });
+    // Get safe user data
+    const safeData = user.getSafeData();
+    
+    // Log the response
+    console.log('[Auth] Login response for user:', user.email, 'isAdmin:', user.isAdmin);
+
+    // Send the response with cookie only (no token in body)
+    res.status(statusCode)
+        .cookie('token', token, options)
+        .json({
+            success: true,
+            user: {
+                ...safeData,
+                isEmailVerified: user.isEmailVerified,
+                isAdmin: user.isAdmin
+            }
+        });
 };
 
 // Email transporter setup (configure with your email service environment variables)
@@ -475,8 +484,8 @@ exports.resendVerification = async (req, res) => {
 exports.logout = (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
-        secure: false,
-        sameSite: 'Lax',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
         path: '/'
     });
 
@@ -489,8 +498,8 @@ exports.logout = (req, res) => {
 exports.clearCookies = (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
-        secure: false,
-        sameSite: 'Lax',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
         path: '/'
     });
 
@@ -589,5 +598,18 @@ exports.checkAdmin = async (req, res) => {
     } catch (err) {
         console.error("Error checking admin status:", err);
         res.status(500).json({ message: "Error checking admin status." });
+    }
+};
+
+// @desc    Get all admin users
+// @route   GET /api/auth/admins
+// @access  Private (Admin only)
+exports.getAdmins = async (req, res) => {
+    try {
+        const admins = await User.find({ isAdmin: true }).select('name email _id');
+        res.json({ success: true, data: admins });
+    } catch (error) {
+        console.error("Error fetching admins:", error);
+        res.status(500).json({ message: "Error fetching admin users." });
     }
 };

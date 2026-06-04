@@ -1,38 +1,72 @@
 const asyncHandler = require('express-async-handler');
 const DeliveryCharge = require('../models/DeliveryCharge');
+const DefaultDeliverySettings = require('../models/DefaultDeliverySettings');
 
 // @desc    Get all delivery charges
-// @route   GET /api/delivery-charges
+// @route   GET /api/delivery
 // @access  Private/Admin
 const getDeliveryCharges = asyncHandler(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
-  const skip = (page - 1) * limit;
+  try {
+    // Verify admin user
+    if (!req.user) {
+      console.log('[Delivery] getDeliveryCharges called without user context');
+      return res.status(401).json({ 
+        success: false,
+        message: "Not authorized",
+        code: "NO_USER"
+      });
+    }
 
-  const filter = {};
-  if (req.query.state) {
-    filter.state = req.query.state.toUpperCase();
+    if (!req.user.isAdmin) {
+      console.log('[Delivery] Non-admin user attempted to get delivery charges:', req.user.email);
+      return res.status(403).json({ 
+        success: false,
+        message: "Access denied: Admin privileges required",
+        code: "NOT_ADMIN"
+      });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    console.log(`[Delivery] Fetching delivery charges - page: ${page}, limit: ${limit}`);
+
+    const filter = {};
+    if (req.query.state) {
+      filter.state = req.query.state.toUpperCase();
+    }
+    if (req.query.city) {
+      filter.city = req.query.city.toUpperCase();
+    }
+    if (req.query.isActive !== undefined) {
+      filter.isActive = req.query.isActive === 'true';
+    }
+
+    const deliveryCharges = await DeliveryCharge.find(filter)
+      .sort({ state: 1, city: 1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await DeliveryCharge.countDocuments(filter);
+
+    console.log(`[Delivery] Successfully fetched ${deliveryCharges.length} delivery charges`);
+
+    res.json({
+      success: true,
+      deliveryCharges,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      total
+    });
+  } catch (error) {
+    console.error('[Delivery] Get delivery charges error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch delivery charges',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-  if (req.query.city) {
-    filter.city = req.query.city.toUpperCase();
-  }
-  if (req.query.isActive !== undefined) {
-    filter.isActive = req.query.isActive === 'true';
-  }
-
-  const deliveryCharges = await DeliveryCharge.find(filter)
-    .sort({ state: 1, city: 1 })
-    .skip(skip)
-    .limit(limit);
-
-  const total = await DeliveryCharge.countDocuments(filter);
-
-  res.json({
-    deliveryCharges,
-    currentPage: page,
-    totalPages: Math.ceil(total / limit),
-    total
-  });
 });
 
 // @desc    Get delivery charge by ID
@@ -236,6 +270,52 @@ const bulkUploadDeliveryCharges = asyncHandler(async (req, res) => {
   res.json(results);
 });
 
+// @desc    Get default delivery settings
+// @route   GET /api/delivery/default-settings
+// @access  Private/Admin
+const getDefaultSettings = asyncHandler(async (req, res) => {
+  let settings = await DefaultDeliverySettings.findOne({ settingName: 'GLOBAL_DEFAULT_DELIVERY' });
+  
+  if (!settings) {
+    settings = await DefaultDeliverySettings.create({
+      settingName: 'GLOBAL_DEFAULT_DELIVERY',
+      charge: 50,
+      minimumOrderValue: 0,
+      freeDeliveryThreshold: 500,
+      estimatedDays: 3
+    });
+  }
+  
+  res.json(settings);
+});
+
+// @desc    Update default delivery settings
+// @route   PUT /api/delivery/default-settings
+// @access  Private/Admin
+const updateDefaultSettings = asyncHandler(async (req, res) => {
+  const { charge, minimumOrderValue, freeDeliveryThreshold, estimatedDays } = req.body;
+  
+  let settings = await DefaultDeliverySettings.findOne({ settingName: 'GLOBAL_DEFAULT_DELIVERY' });
+  
+  if (!settings) {
+    settings = await DefaultDeliverySettings.create({
+      settingName: 'GLOBAL_DEFAULT_DELIVERY',
+      charge: charge || 50,
+      minimumOrderValue: minimumOrderValue || 0,
+      freeDeliveryThreshold: freeDeliveryThreshold || 500,
+      estimatedDays: estimatedDays || 3
+    });
+  } else {
+    settings.charge = charge !== undefined ? charge : settings.charge;
+    settings.minimumOrderValue = minimumOrderValue !== undefined ? minimumOrderValue : settings.minimumOrderValue;
+    settings.freeDeliveryThreshold = freeDeliveryThreshold !== undefined ? freeDeliveryThreshold : settings.freeDeliveryThreshold;
+    settings.estimatedDays = estimatedDays !== undefined ? estimatedDays : settings.estimatedDays;
+    await settings.save();
+  }
+  
+  res.json(settings);
+});
+
 module.exports = {
   getDeliveryCharges,
   getDeliveryChargeById,
@@ -243,5 +323,7 @@ module.exports = {
   updateDeliveryCharge,
   deleteDeliveryCharge,
   getLocations,
-  bulkUploadDeliveryCharges
+  bulkUploadDeliveryCharges,
+  getDefaultSettings,
+  updateDefaultSettings
 };

@@ -8,34 +8,40 @@ export const UserProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Check auth on mount - cookie will be sent automatically
   useEffect(() => {
-    // Only check localStorage for cached user data
-    const userData = localStorage.getItem('user');
-    if (userData) {
+    const checkAuth = async () => {
       try {
-        setUser(JSON.parse(userData));
-      } catch (e) {
-        localStorage.removeItem('user');
+        const response = await apiService.getProfile();
+        if (response.data) {
+          console.log('[UserContext] User logged in:', response.data.email);
+          setUser(response.data);
+          fetchWishlist();
+        }
+      } catch (error) {
+        console.log('[UserContext] Not logged in');
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+    checkAuth();
   }, []);
 
   const login = (userData) => {
+    console.log('[UserContext] Setting user:', userData.email, 'isAdmin:', userData.isAdmin);
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
     fetchWishlist();
   };
 
   const logout = async () => {
-    setUser(null);
-    setWishlist([]);
-    localStorage.removeItem('user');
+    console.log('[UserContext] Logging out');
     try {
       await apiService.logout();
     } catch (error) {
-      // Ignore logout errors - user is already being logged out
-      console.log('Logout request failed, but continuing with local logout');
+      console.log('[UserContext] Logout request failed:', error);
+    } finally {
+      setUser(null);
+      setWishlist([]);
     }
   };
 
@@ -77,22 +83,26 @@ export const UserProvider = ({ children }) => {
         const response = await apiService.getWishlist();
         setWishlist(response.data || []);
       } catch (error) {
-        // If token is invalid, logout user
-        if (error.message.includes('Invalid token') || error.message.includes('Not authorized')) {
-          logout();
-        } else {
-          console.error('Failed to fetch wishlist:', error);
+        console.error('[UserContext] Failed to fetch wishlist:', error);
+        // If 401, user will be logged out by interceptor
+        if (error.status === 401) {
+          setUser(null);
+          setWishlist([]);
         }
       }
     }
   };
 
   const isAuthenticated = () => {
-    return !!user;
+    const result = !!user;
+    console.log('[UserContext] isAuthenticated():', result, 'user:', user ? user.email : 'null');
+    return result;
   };
 
   const isAdmin = () => {
-    return user?.isAdmin === true;
+    const result = user?.isAdmin === true;
+    console.log('[UserContext] isAdmin():', result, 'user.isAdmin:', user?.isAdmin);
+    return result;
   };
 
   return (

@@ -14,20 +14,19 @@ const MyOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
+        setLoading(true);
         const response = await apiService.getOrders();
-        setOrders(response.data || []);
+        
+        if (response.success && response.orders) {
+          setOrders(response.orders);
+        } else if (Array.isArray(response)) {
+          setOrders(response);
+        } else {
+          setOrders([]);
+        }
       } catch (error) {
         console.error('Failed to fetch orders:', error);
-        // Add sample data for testing
-        setOrders([
-          {
-            _id: 'sample1',
-            items: [{ product: { name: 'Sample Product', mainImage: null } }],
-            status: 'pending',
-            totalAmount: 2500,
-            createdAt: new Date().toISOString()
-          }
-        ]);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -37,14 +36,16 @@ const MyOrders = () => {
   }, []);
 
   const getStatusText = (status) => {
+    const statusUpper = (status || '').toUpperCase();
     const statusMap = {
-      'pending': 'Order Placed',
-      'confirmed': 'Confirmed',
-      'shipped': 'Shipped',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled'
+      'PENDING': 'Order Placed',
+      'CONFIRMED': 'Confirmed',
+      'PROCESSING': 'Processing',
+      'SHIPPED': 'Shipped',
+      'DELIVERED': 'Delivered',
+      'CANCELLED': 'Cancelled'
     };
-    return statusMap[status] || status;
+    return statusMap[statusUpper] || status;
   };
 
   const tabs = ['Ordered', 'Track Order', 'Delivered', 'Order History'];

@@ -63,20 +63,41 @@ const DeliveryChargesPage = () => {
 
 
   // Set default charge values
-  const setDefaultChargeValues = () => {
-    setDefaultCharge({
-      charge: 50,
-      minimumOrderValue: 0,
-      freeDeliveryThreshold: 500,
-      estimatedDays: 3
-    });
+  const fetchDefaultSettings = async () => {
+    try {
+      const settings = await adminApi.getDefaultDeliverySettings();
+      setDefaultCharge({
+        charge: settings.charge,
+        minimumOrderValue: settings.minimumOrderValue,
+        freeDeliveryThreshold: settings.freeDeliveryThreshold,
+        estimatedDays: settings.estimatedDays
+      });
+    } catch (error) {
+      console.error('Failed to fetch default settings:', error);
+      // Fallback to default values
+      setDefaultCharge({
+        charge: 50,
+        minimumOrderValue: 0,
+        freeDeliveryThreshold: 500,
+        estimatedDays: 3
+      });
+    }
   };
 
-  // Handle Save Default Settings (local only)
+  // Handle Save Default Settings
   const handleSaveDefaultSettings = async (values) => {
-    setDefaultCharge(values);
-    setIsDefaultModalVisible(false);
-    message.success('Default settings updated locally!');
+    try {
+      setLoading(true);
+      const updatedSettings = await adminApi.updateDefaultDeliverySettings(values);
+      setDefaultCharge(values);
+      setIsDefaultModalVisible(false);
+      message.success('Default settings saved successfully!');
+    } catch (error) {
+      message.error('Failed to save default settings');
+      console.error('Save default settings error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -90,19 +111,45 @@ const DeliveryChargesPage = () => {
         ...filters
       };
 
+      console.log('[Admin] Fetching delivery charges:', params);
       const data = await adminApi.getDeliveryCharges(params);
 
-      setCharges(data.deliveryCharges);
+      if (!data) {
+        throw new Error('No data returned from server');
+      }
+
+      console.log('[Admin] Delivery charges fetched successfully:', data);
+
+      setCharges(data.deliveryCharges || []);
       setPagination({
-        current: data.currentPage,
+        current: data.currentPage || page,
         pageSize: pageSize,
-        total: data.total
+        total: data.total || 0
       });
+
+      if ((data.deliveryCharges || []).length > 0) {
+        message.success(`Loaded ${data.deliveryCharges.length} delivery charges`);
+      }
     } catch (error) {
-      message.error('Failed to fetch delivery charges');
-      console.error('Fetch charges error:', error);
+      console.error('[Admin] Error fetching delivery charges:', error);
+      
+      // Handle different error types
+      if (error.code === 'NO_TOKEN' || error.code === 'UNAUTHORIZED') {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/login';
+      } else if (error.code === 'NOT_ADMIN') {
+        message.error('You do not have admin privileges to view delivery charges');
+      } else if (error.message) {
+        message.error(`Failed to fetch delivery charges: ${error.message}`);
+      } else {
+        message.error('Failed to fetch delivery charges. Please try again.');
+      }
+      
+      setCharges([]);
+      setPagination({ current: 1, pageSize: 10, total: 0 });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Fetch locations for dropdown
@@ -135,7 +182,7 @@ const DeliveryChargesPage = () => {
 
   // Initial fetch on component mount
   useEffect(() => {
-    setDefaultChargeValues(); // Set default values
+    fetchDefaultSettings();
     fetchDeliveryCharges();
     fetchLocations();
   }, []);
@@ -495,7 +542,7 @@ const DeliveryChargesPage = () => {
       {defaultCharge && ( // Only show if defaultCharge is loaded
         <Alert
           message="Default Charge Information"
-          description={`Cities not configured will use default charge: ₹${defaultCharge.charge} | Free delivery over: ₹${defaultCharge.freeDeliveryThreshold} | Estimated days: ${defaultCharge.estimatedDays}`}
+          description={`Cities not configured will use default charge: ₹${defaultCharge.charge} | Free delivery over: ₹${defaultCharge.freeDeliveryThreshold || 'N/A'} | Estimated days: ${defaultCharge.estimatedDays}`}
           type="info"
           icon={<InfoCircleOutlined />}
           style={{ marginBottom: '24px' }}
@@ -699,7 +746,7 @@ DELHI,NEW DELHI,40,300,600,1,true"
       >
         <Alert
           message="Default Configuration"
-          description="These settings will be used as default values for new cities you add."
+          description="These settings will be applied to all cities/states that don't have specific delivery charges configured. They will also be used as default values when creating new delivery charges."
           type="info"
           showIcon
           style={{ marginBottom: '16px' }}

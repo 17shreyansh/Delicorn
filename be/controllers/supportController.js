@@ -270,7 +270,7 @@ const assignTicket = asyncHandler(async (req, res) => {
     const assignedUser = await User.findById(assignedTo);
     if (!assignedUser || !assignedUser.isAdmin) {
       res.status(400);
-      throw new Error('Invalid assigned user');
+      throw new Error('Invalid assigned user - user must be an admin');
     }
   }
 

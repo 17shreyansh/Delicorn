@@ -18,11 +18,37 @@ const Login = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      console.log('[Login] Attempting login with email:', values.email);
       const response = await apiService.login(values);
+      
+      console.log('[Login] Login response:', response);
+      
+      if (!response.user) {
+        throw new Error('No user data in response');
+      }
+      
+      console.log('[Login] User data:', {
+        email: response.user.email,
+        isAdmin: response.user.isAdmin,
+        isEmailVerified: response.user.isEmailVerified
+      });
+      
+      // Call login which saves to localStorage and UserContext
       login(response.user);
+      
+      console.log('[Login] User login successful, redirecting...');
       message.success('Welcome back!');
-      navigate('/');
+      
+      // Redirect based on admin status
+      if (response.user.isAdmin) {
+        console.log('[Login] Admin user detected, redirecting to /admin');
+        navigate('/admin');
+      } else {
+        console.log('[Login] Regular user, redirecting to /');
+        navigate('/');
+      }
     } catch (error) {
+      console.error('[Login] Login error:', error);
       message.error(error.message || 'Login failed');
     } finally {
       setLoading(false);

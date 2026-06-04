@@ -7,7 +7,9 @@ const {
   updateDeliveryCharge,
   deleteDeliveryCharge,
   getLocations,
-  bulkUploadDeliveryCharges
+  bulkUploadDeliveryCharges,
+  getDefaultSettings,
+  updateDefaultSettings
 } = require('../controllers/DeliveryCharge');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 
@@ -20,6 +22,8 @@ router.route('/')
 
 router.get('/locations', getLocations);
 router.post('/bulk', bulkUploadDeliveryCharges);
+router.get('/default-settings', getDefaultSettings);
+router.put('/default-settings', updateDefaultSettings);
 
 router.route('/:id')
   .get(getDeliveryChargeById)

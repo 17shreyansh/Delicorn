@@ -100,24 +100,27 @@ const ticketSchema = new mongoose.Schema({
 
 // Pre-save middleware to generate ticket ID
 ticketSchema.pre('save', async function(next) {
-  if (this.isNew) {
-    const count = await this.constructor.countDocuments();
-    // Ensure the generated ID is unique even if countDocuments is slightly off
-    let newTicketId;
+  if (this.isNew && !this.ticketId) {
     let isUnique = false;
     let attempt = 0;
-    while (!isUnique && attempt < 5) { // Try a few times to ensure uniqueness
-      newTicketId = `TKT-${String(count + 1 + attempt).padStart(6, '0')}`;
+    let newTicketId;
+    
+    while (!isUnique && attempt < 10) {
+      const count = await this.constructor.countDocuments();
+      const randomOffset = Math.floor(Math.random() * 100);
+      newTicketId = `TKT-${String(count + 1 + attempt + randomOffset).padStart(6, '0')}`;
+      
       const existingTicket = await this.constructor.findOne({ ticketId: newTicketId });
       if (!existingTicket) {
         isUnique = true;
       }
       attempt++;
     }
+    
     if (!isUnique) {
-        // Fallback if after several attempts it's still not unique (highly unlikely)
-        newTicketId = `TKT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      newTicketId = `TKT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     }
+    
     this.ticketId = newTicketId;
   }
   next();

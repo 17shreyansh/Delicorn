@@ -96,7 +96,7 @@ const AdminSupportPage = () => {
   // Function to fetch admin users from the API
   const fetchAdmins = async () => {
     try {
-      const data = await adminApi.getUsers();
+      const data = await adminApi.getAdmins();
       setAdmins(data.data || []); // Update admins state
     } catch (error) {
       console.error('Failed to fetch admins:', error); // Log error for debugging

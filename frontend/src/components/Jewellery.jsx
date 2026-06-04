@@ -1,12 +1,23 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "antd";
-import jewelleryImage from "../assets/jewelleryImage.jpg"; // replace with your correct path
+import { Link } from "react-router-dom";
+import axios from "axios";
+import jewelleryImage from "../assets/jewelleryImage.jpg";
+
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const JewelleryCircleBanner = () => {
-  const [isMobile, setIsMobile] = React.useState(false);
-  const [isSmallMobile, setIsSmallMobile] = React.useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSmallMobile, setIsSmallMobile] = useState(false);
+  const [bannerData, setBannerData] = useState({
+    title: "Join Our Jewellery Circle",
+    description: "Get 10% OFF on your first order when you sign up!",
+    buttonText: "Shop Now",
+    buttonLink: "/shop",
+    backgroundImage: jewelleryImage
+  });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
       setIsSmallMobile(window.innerWidth <= 480);
@@ -16,8 +27,30 @@ const JewelleryCircleBanner = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    fetchBannerData();
+  }, []);
+
+  const fetchBannerData = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/dynamic-home/jewelry`);
+      if (res.data.data) {
+        setBannerData(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching jewelry banner:', error);
+      // Use default data on error
+    }
+  };
+
+  const bgImage = typeof bannerData.backgroundImage === 'string' && bannerData.backgroundImage.startsWith('http') 
+    ? bannerData.backgroundImage 
+    : typeof bannerData.backgroundImage === 'string' && (bannerData.backgroundImage.startsWith('/uploads') || bannerData.backgroundImage.startsWith('/assets'))
+    ? `${API_BASE_URL}${bannerData.backgroundImage}`
+    : bannerData.backgroundImage;
+
   const containerStyle = {
-    backgroundImage: `url(${jewelleryImage})`,
+    backgroundImage: `url(${bgImage})`,
     backgroundSize: "cover",
     backgroundPosition: "center center",
     width: "100%",
@@ -61,16 +94,23 @@ const JewelleryCircleBanner = () => {
 
   return (
     <div style={containerStyle}>
-      
       {/* Top Section */}
-      <div
-        style={{
-          textAlign: "left",
-          color: "white",
-        }}
-      >
+      <div style={{ textAlign: "left", color: "white" }}>
         <h1 style={titleStyle}>
-          Join Our <br /> Jewellery Circle
+          {bannerData.title.includes('\\n') 
+            ? bannerData.title.split('\\n').map((line, i) => (
+                <React.Fragment key={i}>
+                  {line}
+                  {i < bannerData.title.split('\\n').length - 1 && <br />}
+                </React.Fragment>
+              ))
+            : bannerData.title.split('\n').map((line, i) => (
+                <React.Fragment key={i}>
+                  {line}
+                  {i < bannerData.title.split('\n').length - 1 && <br />}
+                </React.Fragment>
+              ))
+          }
         </h1>
       </div>
 
@@ -83,13 +123,14 @@ const JewelleryCircleBanner = () => {
         }}
       >
         <p style={descriptionStyle}>
-          Get <strong>10% OFF</strong> on your first order {!isSmallMobile && <br />}
-          when you sign up!
+          {bannerData.description}
         </p>
 
-        <Button style={buttonStyle}>
-          Shop Now
-        </Button>
+        <Link to={bannerData.buttonLink || '/shop'}>
+          <Button style={buttonStyle}>
+            {bannerData.buttonText || 'Shop Now'}
+          </Button>
+        </Link>
       </div>
     </div>
   );

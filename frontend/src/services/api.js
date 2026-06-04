@@ -1,389 +1,488 @@
+/**
+ * UNIFIED API SERVICE - COOKIE-BASED AUTHENTICATION ONLY
+ * No localStorage - Pure HttpOnly cookies
+ */
+
+import axios from 'axios';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-class ApiService {
-  async request(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      credentials: 'include', // Include cookies in requests
-      ...options,
-    };
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true, // Always send cookies
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-    try {
-      const response = await fetch(url, config);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        
-        // Handle token expiration
-        if (response.status === 401 && errorData.tokenExpired) {
-          // Clear local storage and redirect to login
-          localStorage.removeItem('user');
-          if (window.location.pathname !== '/login' && !window.location.pathname.startsWith('/admin')) {
-            window.location.href = '/login';
-          }
-        }
-        
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+// Request interceptor
+api.interceptors.request.use(
+  (config) => {
+    if (import.meta.env.DEV) {
+      console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
     }
-  }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  // ============ PRODUCT METHODS ============
-  
-  // Get all products with filters
-  getProducts(filters = {}) {
-    const params = new URLSearchParams();
-    Object.keys(filters).forEach(key => {
-      if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
-        params.append(key, filters[key]);
-      }
-    });
-    return this.request(`/products?${params.toString()}`);
-  }
-
-  // Get products by type (ashta-dhatu or fashion-jewelry)
-  getProductsByType(type, options = {}) {
-    const params = new URLSearchParams();
-    Object.keys(options).forEach(key => {
-      if (options[key] !== undefined && options[key] !== null) {
-        params.append(key, options[key]);
-      }
-    });
-    return this.request(`/products/type/${type}?${params.toString()}`);
-  }
-
-  // Get single product by slug
-  getProduct(slug) {
-    return this.request(`/products/${slug}`);
-  }
-
-  // Get related products by slug
-  getRelatedProducts(slug, limit = 4) {
-    return this.request(`/products/${slug}/related?limit=${limit}`);
-  }
-
-  // Search products
-  searchProducts(query, filters = {}) {
-    const params = new URLSearchParams({ search: query });
-    Object.keys(filters).forEach(key => {
-      if (filters[key] !== undefined && filters[key] !== null) {
-        params.append(key, filters[key]);
-      }
-    });
-    return this.request(`/products?${params.toString()}`);
-  }
-
-  // Get featured products
-  getFeaturedProducts(limit = 8) {
-    return this.request(`/products?featured=true&limit=${limit}`);
-  }
-
-  // ============ ADMIN PRODUCT METHODS ============
-  
-  createProduct(productData) {
-    return this.request('/products', {
-      method: 'POST',
-      body: JSON.stringify(productData),
-    });
-  }
-
-  updateProduct(id, productData) {
-    return this.request(`/products/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(productData),
-    });
-  }
-
-  deleteProduct(id) {
-    return this.request(`/products/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-  updateProductStock(id, size, color, stock) {
-    return this.request(`/products/${id}/stock`, {
-      method: 'PATCH',
-      body: JSON.stringify({ size, color, stock }),
-    });
-  }
-
-  // ============ CATEGORY METHODS ============
-  
-  getCategories() {
-    return this.request('/categories');
-  }
-
-  // ============ BRAND METHODS ============
-  
-  getBrands() {
-    return this.request('/brands');
-  }
-
-  // ============ SEARCH METHODS ============
-  
-  getSearchSuggestions(query) {
-    return this.request(`/search/suggestions?q=${encodeURIComponent(query)}`);
-  }
-
-  createCategory(categoryData) {
-    return this.request('/categories', {
-      method: 'POST',
-      body: JSON.stringify(categoryData),
-    });
-  }
-
-  updateCategory(id, categoryData) {
-    return this.request(`/categories/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(categoryData),
-    });
-  }
-
-  deleteCategory(id) {
-    return this.request(`/categories/${id}`, {
-      method: 'DELETE',
-    });
-  }
-
-
-
-  // ============ ORDER METHODS ============
-  
-  getOrders() {
-    return this.request('/orders/my-orders');
-  }
-
-  getAdminOrders() {
-    return this.request('/orders/admin/orders');
-  }
-
-  getOrder(id) {
-    return this.request(`/orders/${id}`);
-  }
-
-  createOrder(orderData) {
-    return this.request('/orders', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    });
-  }
-
-  updateOrderStatus(id, status) {
-    return this.request(`/orders/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    });
-  }
-
-  // ============ USER/AUTH METHODS ============
-  
-  async login(credentials) {
-    const response = await this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
-    
-    // Store user data (token is in httpOnly cookie)
-    if (response.success && response.user) {
-      localStorage.setItem('user', JSON.stringify(response.user));
+// Response interceptor
+api.interceptors.response.use(
+  (response) => {
+    if (import.meta.env.DEV) {
+      console.log(`[API] ${response.config.method.toUpperCase()} ${response.config.url} ${response.status}`);
     }
-    
     return response;
-  }
+  },
+  (error) => {
+    const status = error.response?.status;
+    const message = error.response?.data?.message || error.message;
 
-  register(userData) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
+    console.error(`[API Error]`, error.config?.method?.toUpperCase(), error.config?.url, status, message);
+
+    // Redirect to login on 401 (except login page itself)
+    if (status === 401 && !error.config?.url?.includes('/auth/login') && window.location.pathname !== '/login') {
+      console.log('[API] Unauthorized - redirecting to login');
+      window.location.href = '/login';
+    }
+
+    return Promise.reject({
+      status: status || 0,
+      message: message || 'Request failed',
+      data: error.response?.data,
     });
   }
+);
+
+// ============ API SERVICE ============
+
+const apiService = {
+  // ===== AUTHENTICATION =====
+  async login(credentials) {
+    const { data } = await api.post('/auth/login', credentials);
+    return data;
+  },
 
   async logout() {
-    try {
-      await this.request('/auth/logout', {
-        method: 'POST',
-      });
-    } catch (error) {
-      // Try to clear cookies even if logout fails
-      try {
-        await this.request('/auth/clear-cookies', {
-          method: 'POST',
-        });
-      } catch (clearError) {
-        console.error('Clear cookies failed:', clearError);
-      }
-    } finally {
-      localStorage.removeItem('user');
-    }
-  }
+    const { data } = await api.post('/auth/logout');
+    return data;
+  },
 
-  getCurrentUser() {
-    return this.request('/auth/profile');
-  }
+  async register(userData) {
+    const { data } = await api.post('/auth/register', userData);
+    return data;
+  },
 
-  updateProfile(userData) {
-    return this.request('/auth/profile', {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
-  }
+  async getProfile() {
+    const { data } = await api.get('/auth/profile');
+    return data;
+  },
 
-  // ============ WISHLIST METHODS ============
-  
-  getWishlist() {
-    return this.request('/wishlist');
-  }
+  async updateProfile(userData) {
+    const { data } = await api.put('/auth/profile', userData);
+    return data;
+  },
 
-  addToWishlist(productId) {
-    return this.request('/wishlist', {
-      method: 'POST',
-      body: JSON.stringify({ productId }),
-    });
-  }
+  async getUsers() {
+    const { data } = await api.get('/auth/users');
+    return data;
+  },
 
-  removeFromWishlist(productId) {
-    return this.request(`/wishlist/${productId}`, {
-      method: 'DELETE',
-    });
-  }
+  async getAdmins() {
+    const { data } = await api.get('/auth/admins');
+    return data;
+  },
 
-  // ============ REVIEW METHODS ============
-  
-  getProductReviews(productId) {
-    return this.request(`/reviews/product/${productId}`);
-  }
+  // ===== PRODUCTS =====
+  async getProducts(params = {}) {
+    const { data } = await api.get('/products', { params });
+    return data;
+  },
 
-  createReview(reviewData) {
-    return this.request('/reviews', {
-      method: 'POST',
-      body: JSON.stringify(reviewData),
-    });
-  }
+  async getProduct(slug) {
+    const { data } = await api.get(`/products/${slug}`);
+    return data;
+  },
 
-  // ============ COUPON METHODS ============
-  
-  getCoupons() {
-    return this.request('/coupons/public');
-  }
+  async getProductsByType(type, params = {}) {
+    const { data } = await api.get(`/products/type/${type}`, { params });
+    return data;
+  },
 
-  getAdminCoupons() {
-    return this.request('/coupons/admin');
-  }
+  async getFeaturedProducts(limit = 8) {
+    const { data } = await api.get('/products', { params: { featured: true, limit } });
+    return data;
+  },
 
-  validateCoupon(code) {
-    return this.request(`/coupons/validate/${code}`);
-  }
+  async getRelatedProducts(slug, limit = 4) {
+    const { data } = await api.get(`/products/${slug}/related`, { params: { limit } });
+    return data;
+  },
 
-  // ============ HOMEPAGE METHODS ============
-  
-  getHomepageData() {
-    return this.request('/homepage');
-  }
+  async createProduct(productData) {
+    const { data } = await api.post('/products', productData);
+    return data;
+  },
 
-  updateHomepageData(data) {
-    return this.request('/homepage', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
+  async updateProduct(id, productData) {
+    const { data } = await api.put(`/products/${id}`, productData);
+    return data;
+  },
 
-  // ============ SUPPORT METHODS ============
-  
-  createSupportTicket(ticketData) {
-    return this.request('/support', {
-      method: 'POST',
-      body: JSON.stringify(ticketData),
-    });
-  }
+  async deleteProduct(id) {
+    const { data } = await api.delete(`/products/${id}`);
+    return data;
+  },
 
-  getSupportTickets() {
-    return this.request('/support');
-  }
+  async searchProducts(query, filters = {}) {
+    const { data } = await api.get('/products', { params: { search: query, ...filters } });
+    return data;
+  },
 
-  // ============ DELIVERY METHODS ============
-  
-  getDeliveryCharges() {
-    return this.request('/delivery');
-  }
+  // ===== CATEGORIES =====
+  async getCategories(params = {}) {
+    const { data } = await api.get('/categories', { params });
+    return data;
+  },
 
-  updateDeliveryCharges(data) {
-    return this.request('/delivery', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
+  async createCategory(categoryData) {
+    const { data } = await api.post('/categories', categoryData);
+    return data;
+  },
 
-  // ============ RETURN METHODS ============
-  
-  getReturns() {
-    return this.request('/returns');
-  }
+  async updateCategory(id, categoryData) {
+    const { data } = await api.put(`/categories/${id}`, categoryData);
+    return data;
+  },
 
-  createReturn(returnData) {
-    return this.request('/returns', {
-      method: 'POST',
-      body: JSON.stringify(returnData),
-    });
-  }
+  async deleteCategory(id) {
+    const { data } = await api.delete(`/categories/${id}`);
+    return data;
+  },
 
-  updateReturnStatus(id, status, adminNotes) {
-    return this.request(`/returns/${id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status, adminNotes }),
-    });
-  }
+  // ===== BRANDS =====
+  async getBrands() {
+    const { data } = await api.get('/brands');
+    return data;
+  },
 
-  // ============ UPLOAD METHODS ============
-  
+  async createBrand(brandData) {
+    const { data } = await api.post('/brands', brandData);
+    return data;
+  },
+
+  async updateBrand(id, brandData) {
+    const { data } = await api.put(`/brands/${id}`, brandData);
+    return data;
+  },
+
+  async deleteBrand(id) {
+    const { data } = await api.delete(`/brands/${id}`);
+    return data;
+  },
+
+  // ===== ORDERS =====
+  async getOrders() {
+    const { data } = await api.get('/orders/my-orders');
+    return data;
+  },
+
+  async getAdminOrders(params = {}) {
+    const { data } = await api.get('/orders/admin/orders', { params });
+    return data;
+  },
+
+  async getOrder(id) {
+    const { data } = await api.get(`/orders/${id}`);
+    return data;
+  },
+
+  async createOrder(orderData) {
+    const { data } = await api.post('/orders', orderData);
+    return data;
+  },
+
+  async updateOrderStatus(id, statusData) {
+    const { data } = await api.patch(`/orders/admin/orders/${id}/status`, statusData);
+    return data;
+  },
+
+  async getCODStatus() {
+    const { data } = await api.get('/orders/cod-status');
+    return data;
+  },
+
+  async toggleCOD(enabled) {
+    const { data } = await api.post('/orders/admin/toggle-cod', { enabled });
+    return data;
+  },
+
+  // ===== COUPONS =====
+  async getCoupons() {
+    const { data } = await api.get('/coupons/public');
+    return data;
+  },
+
+  async getAdminCoupons(params = {}) {
+    const { data } = await api.get('/coupons/admin', { params });
+    return data;
+  },
+
+  async getCoupon(id) {
+    const { data } = await api.get(`/coupons/admin/${id}`);
+    return data;
+  },
+
+  async createCoupon(couponData) {
+    const { data } = await api.post('/coupons/admin', couponData);
+    return data;
+  },
+
+  async updateCoupon(id, couponData) {
+    const { data } = await api.put(`/coupons/admin/${id}`, couponData);
+    return data;
+  },
+
+  async deleteCoupon(id) {
+    const { data } = await api.delete(`/coupons/admin/${id}`);
+    return data;
+  },
+
+  async toggleCouponStatus(id) {
+    const { data } = await api.patch(`/coupons/admin/${id}/toggle-status`);
+    return data;
+  },
+
+  async validateCoupon(code) {
+    const { data } = await api.get(`/coupons/validate/${code}`);
+    return data;
+  },
+
+  async getCouponAnalytics(period = '30d') {
+    const { data } = await api.get('/coupons/admin/analytics', { params: { period } });
+    return data;
+  },
+
+  // ===== WISHLIST =====
+  async getWishlist() {
+    const { data } = await api.get('/wishlist');
+    return data;
+  },
+
+  async addToWishlist(productId) {
+    const { data } = await api.post('/wishlist', { productId });
+    return data;
+  },
+
+  async removeFromWishlist(productId) {
+    const { data } = await api.delete(`/wishlist/${productId}`);
+    return data;
+  },
+
+  // ===== REVIEWS =====
+  async getProductReviews(productId) {
+    const { data } = await api.get(`/reviews/product/${productId}`);
+    return data;
+  },
+
+  async createReview(reviewData) {
+    const { data } = await api.post('/reviews', reviewData);
+    return data;
+  },
+
+  async updateReview(id, reviewData) {
+    const { data } = await api.put(`/reviews/${id}`, reviewData);
+    return data;
+  },
+
+  async deleteReview(id) {
+    const { data } = await api.delete(`/reviews/${id}`);
+    return data;
+  },
+
+  // ===== SUPPORT TICKETS =====
+  async getTickets(params = {}) {
+    const { data } = await api.get('/tickets/admin', { params });
+    return data;
+  },
+
+  async getTicket(id) {
+    const { data } = await api.get(`/tickets/${id}`);
+    return data;
+  },
+
+  async createTicket(ticketData) {
+    const { data } = await api.post('/tickets', ticketData);
+    return data;
+  },
+
+  async updateTicket(id, ticketData) {
+    const { data } = await api.put(`/tickets/${id}`, ticketData);
+    return data;
+  },
+
+  async deleteTicket(id) {
+    const { data } = await api.delete(`/tickets/${id}`);
+    return data;
+  },
+
+  async addTicketMessage(id, message) {
+    const { data } = await api.post(`/tickets/${id}/messages`, { message });
+    return data;
+  },
+
+  async assignTicket(id, assignData) {
+    const { data } = await api.put(`/tickets/${id}/assign`, assignData);
+    return data;
+  },
+
+  // ===== DELIVERY =====
+  async getDeliveryCharges(params = {}) {
+    const { data } = await api.get('/delivery', { params });
+    return data;
+  },
+
+  async createDeliveryCharge(chargeData) {
+    const { data } = await api.post('/delivery', chargeData);
+    return data;
+  },
+
+  async updateDeliveryCharge(id, chargeData) {
+    const { data } = await api.put(`/delivery/${id}`, chargeData);
+    return data;
+  },
+
+  async deleteDeliveryCharge(id) {
+    const { data } = await api.delete(`/delivery/${id}`);
+    return data;
+  },
+
+  async bulkUploadDeliveryCharges(bulkData) {
+    const { data } = await api.post('/delivery/bulk', bulkData);
+    return data;
+  },
+
+  async getDefaultDeliverySettings() {
+    const { data } = await api.get('/delivery/default-settings');
+    return data;
+  },
+
+  async updateDefaultDeliverySettings(settings) {
+    const { data } = await api.put('/delivery/default-settings', settings);
+    return data;
+  },
+
+  // ===== RETURNS =====
+  async getReturns() {
+    const { data } = await api.get('/returns');
+    return data;
+  },
+
+  async createReturn(returnData) {
+    const { data } = await api.post('/returns', returnData);
+    return data;
+  },
+
+  async updateReturnStatus(id, status, adminNotes) {
+    const { data } = await api.put(`/returns/${id}/status`, { status, adminNotes });
+    return data;
+  },
+
+  // ===== HOMEPAGE =====
+  async getHomepageData() {
+    const { data } = await api.get('/home');
+    return data;
+  },
+
+  async updateHomepageData(homeData) {
+    const { data } = await api.put('/home', homeData);
+    return data;
+  },
+
+  async getDynamicHomeData() {
+    const { data } = await api.get('/dynamic-home');
+    return data;
+  },
+
+  async updateDynamicHomeData(dynamicData) {
+    const { data } = await api.put('/dynamic-home', dynamicData);
+    return data;
+  },
+
+  // ===== MENUS =====
+  async getMenus() {
+    const { data } = await api.get('/menus/admin');
+    return data;
+  },
+
+  async createMenu(menuData) {
+    const { data } = await api.post('/menus', menuData);
+    return data;
+  },
+
+  async updateMenu(id, menuData) {
+    const { data } = await api.put(`/menus/${id}`, menuData);
+    return data;
+  },
+
+  async deleteMenu(id) {
+    const { data } = await api.delete(`/menus/${id}`);
+    return data;
+  },
+
+  // ===== SEARCH =====
+  async getSearchSuggestions(query) {
+    const { data } = await api.get('/search/suggestions', { params: { q: query } });
+    return data;
+  },
+
+  // ===== ADDRESSES =====
+  async getAddresses() {
+    const { data } = await api.get('/user/addresses');
+    return data;
+  },
+
+  async createAddress(addressData) {
+    const { data } = await api.post('/user/addresses', addressData);
+    return data;
+  },
+
+  async updateAddress(id, addressData) {
+    const { data } = await api.put(`/user/addresses/${id}`, addressData);
+    return data;
+  },
+
+  async deleteAddress(id) {
+    const { data } = await api.delete(`/user/addresses/${id}`);
+    return data;
+  },
+
+  async setDefaultAddress(id) {
+    const { data } = await api.patch(`/user/addresses/${id}/default`);
+    return data;
+  },
+
+  // ===== UPLOADS =====
   async uploadImage(file, folder = 'products') {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('folder', folder);
-    
-    const url = `${API_BASE_URL}/upload`;
-    const response = await fetch(url, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
+    const { data } = await api.post('/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    return result.data ? result : { url: result.data?.url };
-  }
+    return data;
+  },
 
   async uploadMultipleImages(files, folder = 'products') {
     const formData = new FormData();
-    files.forEach(file => {
-      formData.append('images', file);
-    });
+    files.forEach(file => formData.append('images', file));
     formData.append('folder', folder);
-    
-    const url = `${API_BASE_URL}/upload/multiple`;
-    const response = await fetch(url, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
+    const { data } = await api.post('/upload/multiple', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-  }
-}
+    return data;
+  },
+};
 
-export default new ApiService();
+export default apiService;

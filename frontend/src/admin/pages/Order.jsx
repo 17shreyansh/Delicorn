@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import adminApi from '../../services/adminApi';
+import apiService from '../../services/api';
 import {
   Table,
   Card,
@@ -91,7 +91,10 @@ const AdminOrdersPage = () => {
         ...filters
       };
 
-      const data = await adminApi.getOrders(params);
+      console.log('[Admin] Fetching orders with params:', params);
+      const data = await apiService.getAdminOrders(params);
+
+      console.log('[Admin] Orders fetched successfully:', data);
 
       if (data.success) {
         setOrders(data.orders || []);
@@ -101,10 +104,28 @@ const AdminOrdersPage = () => {
           pageSize: data.pagination?.limit || pageSize,
           total: data.pagination?.total || 0
         });
+        message.success(`Loaded ${(data.orders || []).length} orders`);
+      } else {
+        throw new Error(data.message || 'Failed to fetch orders');
       }
     } catch (error) {
-      message.error('Failed to fetch orders');
-      console.error('Error fetching orders:', error);
+      console.error('[Admin] Error fetching orders:', error);
+      
+      // Handle different error types
+      if (error.code === 'NO_TOKEN' || error.code === 'UNAUTHORIZED') {
+        message.error('Session expired. Please log in again.');
+        window.location.href = '/login';
+      } else if (error.code === 'NOT_ADMIN') {
+        message.error('You do not have admin privileges to view orders');
+      } else if (error.message) {
+        message.error(`Failed to fetch orders: ${error.message}`);
+      } else {
+        message.error('Failed to fetch orders. Please try again.');
+      }
+      
+      // Keep orders as empty array on error
+      setOrders([]);
+      setPagination({ current: 1, pageSize: 20, total: 0 });
     } finally {
       setLoading(false);
     }
@@ -113,7 +134,7 @@ const AdminOrdersPage = () => {
   // Fetch COD status
   const fetchCODStatus = async () => {
     try {
-      const data = await adminApi.getCODStatus();
+      const data = await apiService.getCODStatus();
       if (data.success) {
         setCodEnabled(data.codEnabled);
       }
@@ -125,7 +146,7 @@ const AdminOrdersPage = () => {
   // Toggle COD
   const handleToggleCOD = async () => {
     try {
-      const data = await adminApi.toggleCOD(!codEnabled);
+      const data = await apiService.toggleCOD(!codEnabled);
 
       if (data.success) {
         setCodEnabled(!codEnabled);
@@ -140,7 +161,7 @@ const AdminOrdersPage = () => {
   // Update order status
   const handleUpdateStatus = async (values) => {
     try {
-      const data = await adminApi.updateOrderStatus(selectedOrder._id, values);
+      const data = await apiService.updateOrderStatus(selectedOrder._id, values);
 
       if (data.success) {
         message.success('Order status updated successfully');
@@ -240,7 +261,7 @@ const AdminOrdersPage = () => {
                           </td>
                           <td style="width: 50%;">
                               <strong>Ship To:</strong><br/>
-                              ${order.shippingAddress?.name || order.userId?.name || 'N/A'}<br/>
+                              ${order.shippingAddress?.fullName || order.userId?.name || 'N/A'}<br/>
                               ${order.shippingAddress?.address || 'N/A'}<br/>
                               ${order.shippingAddress?.city || 'N/A'}, ${order.shippingAddress?.state || 'N/A'} - ${order.shippingAddress?.pincode || 'N/A'}
                           </td>
@@ -324,7 +345,7 @@ const AdminOrdersPage = () => {
       // Fetch all orders, or potentially just the filtered ones without pagination limit
       // For simplicity, we'll fetch all orders with a large limit.
       // In a real application, consider a dedicated export endpoint on the backend.
-      const data = await adminApi.getOrders({
+      const data = await apiService.getAdminOrders({
         limit: 10000, // Fetch a large number of orders for export
         ...filters // Apply current filters to the export
       });
@@ -698,8 +719,8 @@ const AdminOrdersPage = () => {
             <Divider />
 
             <Title level={4}>Customer Information</Title>
-            <Descriptions bordered column={1}>
-              <Descriptions.Item label="Name">{selectedOrder.userId?.name}</Descriptions.Item>
+            <Descriptions title="Customer Information" bordered column={1}>
+              <Descriptions.Item label="Name">{selectedOrder.shippingAddress?.fullName || selectedOrder.userId?.name}</Descriptions.Item>
               <Descriptions.Item label="Email">{selectedOrder.userId?.email}</Descriptions.Item>
               <Descriptions.Item label="Phone">{selectedOrder.shippingAddress?.phone}</Descriptions.Item>
               <Descriptions.Item label="Address">

@@ -26,6 +26,8 @@ const deliveryRoutes = require('./routes/deliveryRoutes'); // Import delivery ro
 const addressRoutes = require('./routes/addressRoutes'); // Import address routes
 const returnRoutes = require('./routes/returnRoutes'); // Import return routes
 const debugRoutes = require('./routes/debugRoutes'); // Import debug routes
+const homepageRoutes = require('./routes/homepageRoutes'); // Import homepage routes
+const dynamicHomeRoutes = require('./routes/dynamicHomeRoutes'); // Import dynamic home routes
 const OrderService = require('./services/OrderService');
 const { initializeProductStock } = require('./utils/initializeStock'); // Import stock initializer
 const cron = require('node-cron');
@@ -70,7 +72,13 @@ initializeServices().catch(error => {
 
 // Middleware setup
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+    origin: [
+        'http://localhost:5173', 
+        'http://localhost:3000', 
+        'http://127.0.0.1:5173',
+        'https://delicorn.in',
+        'http://delicorn.in'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -108,6 +116,8 @@ app.use('/api/delivery', deliveryRoutes); // NEW: Delivery routes
 app.use('/api/user/addresses', addressRoutes); // NEW: Address routes
 app.use('/api/returns', returnRoutes); // NEW: Return routes
 app.use('/api/debug', debugRoutes); // NEW: Debug routes (remove in production)
+app.use('/api/home', homepageRoutes); // Homepage management routes
+app.use('/api/dynamic-home', dynamicHomeRoutes); // Dynamic home sections routes
 
 
 

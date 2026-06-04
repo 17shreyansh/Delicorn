@@ -209,7 +209,15 @@ const getUserOrders = async (req, res) => {
 
         res.json({
             success: true,
-            ...result
+            orders: result.orders,
+            pagination: {
+                page: result.page,
+                limit: result.limit,
+                total: result.totalDocs,
+                totalPages: result.totalPages,
+                hasNextPage: result.hasNextPage,
+                hasPrevPage: result.hasPrevPage
+            }
         });
 
     } catch (error) {
@@ -264,12 +272,32 @@ const cancelOrder = async (req, res) => {
     }
 };
 
-// ADMIN CONTROLLERS (remain same)
+// ADMIN CONTROLLERS
 
-// Get all orders (admin)
+// Get all orders (admin) - Enhanced with better error handling
 const getAllOrders = async (req, res) => {
     try {
+        // Verify admin user
+        if (!req.user) {
+            console.log('[Orders] getAllOrders called without user context');
+            return res.status(401).json({ 
+                success: false,
+                message: "Not authorized",
+                code: "NO_USER"
+            });
+        }
+
+        if (!req.user.isAdmin) {
+            console.log('[Orders] Non-admin user attempted to get all orders:', req.user.email);
+            return res.status(403).json({ 
+                success: false,
+                message: "Access denied: Admin privileges required",
+                code: "NOT_ADMIN"
+            });
+        }
+
         const { page = 1, limit = 20, status, search } = req.query;
+        console.log(`[Orders] Fetching all orders - page: ${page}, limit: ${limit}, status: ${status}, search: ${search}`);
 
         const filters = {};
         if (status) filters.status = status.toUpperCase();
@@ -294,15 +322,29 @@ const getAllOrders = async (req, res) => {
             }
         ]);
 
+        console.log(`[Orders] Successfully fetched ${result.orders.length} orders`);
+
         res.json({
             success: true,
-            ...result,
-            stats
+            orders: result.orders,
+            stats,
+            pagination: {
+                page: result.page,
+                limit: result.limit,
+                total: result.totalDocs,
+                totalPages: result.totalPages,
+                hasNextPage: result.hasNextPage,
+                hasPrevPage: result.hasPrevPage
+            }
         });
 
     } catch (error) {
-        console.error('Get all orders error:', error);
-        res.status(500).json({ message: 'Failed to fetch orders' });
+        console.error('[Orders] Get all orders error:', error.message, error.stack);
+        res.status(500).json({ 
+            success: false,
+            message: 'Failed to fetch orders',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 
