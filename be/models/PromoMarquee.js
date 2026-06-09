@@ -1,26 +1,19 @@
 const mongoose = require('mongoose');
 
 const promoMarqueeSchema = new mongoose.Schema({
-  text: {
-    type: String,
-    required: true,
-    default: "4L+ Happy Customers | Gifts For Her @ 50% OFF | Ships in 24 hours"
+  upperMarquee: {
+    text: { type: String, default: "Free Shipping on Orders Above ₹999 | COD Available" },
+    backgroundColor: { type: String, default: "#0d4b4b" },
+    textColor: { type: String, default: "#ffffff" },
+    speed: { type: Number, default: 6 },
+    isActive: { type: Boolean, default: true }
   },
-  backgroundColor: {
-    type: String,
-    default: "#0d4b4b"
-  },
-  textColor: {
-    type: String,
-    default: "#ffffff"
-  },
-  speed: {
-    type: Number,
-    default: 6
-  },
-  isActive: {
-    type: Boolean,
-    default: true
+  lowerMarquee: {
+    text: { type: String, default: "4L+ Happy Customers | Gifts For Her @ 50% OFF | Ships in 24 hours" },
+    backgroundColor: { type: String, default: "#0d4b4b" },
+    textColor: { type: String, default: "#ffffff" },
+    speed: { type: Number, default: 6 },
+    isActive: { type: Boolean, default: true }
   }
 }, { timestamps: true });
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Button } from "antd";
+import { useNavigate } from "react-router-dom";
 import image from "../assets/js.png"; // Banner with jewelry and text
 import girl from "../assets/js1.jpg"; // Model photo
 
 const JewelrySale = () => {
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -141,6 +143,7 @@ const JewelrySale = () => {
             <Button
               type="text"
               style={buttonStyle}
+              onClick={() => navigate("/products")}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor = "#145a4a")
               }

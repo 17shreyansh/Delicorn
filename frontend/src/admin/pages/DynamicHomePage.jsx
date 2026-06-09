@@ -45,7 +45,20 @@ const DynamicHomePage = () => {
 
       heroForm.setFieldsValue(hero.data.data);
       jewelryForm.setFieldsValue(jewelry.data.data);
-      marqueeForm.setFieldsValue(marquee.data.data);
+      
+      const mData = marquee.data.data;
+      marqueeForm.setFieldsValue({
+        upperText: mData.upperMarquee?.text,
+        upperBgColor: mData.upperMarquee?.backgroundColor,
+        upperTextColor: mData.upperMarquee?.textColor,
+        upperSpeed: mData.upperMarquee?.speed,
+        upperActive: mData.upperMarquee?.isActive,
+        lowerText: mData.lowerMarquee?.text,
+        lowerBgColor: mData.lowerMarquee?.backgroundColor,
+        lowerTextColor: mData.lowerMarquee?.textColor,
+        lowerSpeed: mData.lowerMarquee?.speed,
+        lowerActive: mData.lowerMarquee?.isActive
+      });
 
       if (hero.data.data?.backgroundImage) {
         setHeroFileList([{
@@ -372,45 +385,116 @@ const DynamicHomePage = () => {
   );
 
   const MarqueeEditor = () => (
-    <Card title="Promo Marquee" extra={
-      <Button type="primary" icon={<SaveOutlined />} loading={saving}
-        onClick={() => marqueeForm.validateFields().then(v => handleSave('marquee', v, []))}>
-        Save
-      </Button>
-    }>
-      <Form form={marqueeForm} layout="vertical">
-        <Row gutter={16}>
-          <Col xs={24}>
-            <Form.Item name="text" label="Marquee Text" rules={[{ required: true }]}>
-              <Input placeholder="4L+ Happy Customers | Gifts @ 50% OFF" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} lg={8}>
-            <Form.Item name="backgroundColor" label="Background"
-              getValueFromEvent={(c) => c?.toHexString()}
-              getValueProps={(v) => ({ value: v || '#0d4b4b' })}>
-              <ColorPicker showText />
-            </Form.Item>
-          </Col>
-          <Col xs={24} lg={8}>
-            <Form.Item name="textColor" label="Text Color"
-              getValueFromEvent={(c) => c?.toHexString()}
-              getValueProps={(v) => ({ value: v || '#ffffff' })}>
-              <ColorPicker showText />
-            </Form.Item>
-          </Col>
-          <Col xs={24} lg={4}>
-            <Form.Item name="speed" label="Speed">
-              <InputNumber min={1} max={20} style={{ width: '100%' }} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} lg={4}>
-            <Form.Item name="isActive" label="Active" valuePropName="checked">
-              <Switch />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Form>
+    <Card title="Promo Marquees">
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
+        {/* Upper Marquee */}
+        <Card type="inner" title="Upper Marquee (Before Hero)" extra={
+          <Button type="primary" icon={<SaveOutlined />} loading={saving}
+            onClick={() => {
+              const values = marqueeForm.getFieldsValue();
+              const upperData = {
+                upperMarquee: {
+                  text: values.upperText,
+                  backgroundColor: values.upperBgColor,
+                  textColor: values.upperTextColor,
+                  speed: values.upperSpeed,
+                  isActive: values.upperActive
+                }
+              };
+              handleSave('marquee', upperData, []);
+            }}>
+            Save Upper
+          </Button>
+        }>
+          <Form form={marqueeForm} layout="vertical">
+            <Row gutter={16}>
+              <Col xs={24}>
+                <Form.Item name="upperText" label="Text" rules={[{ required: true }]}>
+                  <Input placeholder="Free Shipping on Orders Above ₹999" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={8}>
+                <Form.Item name="upperBgColor" label="Background"
+                  getValueFromEvent={(c) => c?.toHexString()}
+                  getValueProps={(v) => ({ value: v || '#0d4b4b' })}>
+                  <ColorPicker showText />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={8}>
+                <Form.Item name="upperTextColor" label="Text Color"
+                  getValueFromEvent={(c) => c?.toHexString()}
+                  getValueProps={(v) => ({ value: v || '#ffffff' })}>
+                  <ColorPicker showText />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={4}>
+                <Form.Item name="upperSpeed" label="Speed">
+                  <InputNumber min={1} max={20} style={{ width: '100%' }} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={4}>
+                <Form.Item name="upperActive" label="Active" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </Card>
+
+        {/* Lower Marquee */}
+        <Card type="inner" title="Lower Marquee (After Hero)" extra={
+          <Button type="primary" icon={<SaveOutlined />} loading={saving}
+            onClick={() => {
+              const values = marqueeForm.getFieldsValue();
+              const lowerData = {
+                lowerMarquee: {
+                  text: values.lowerText,
+                  backgroundColor: values.lowerBgColor,
+                  textColor: values.lowerTextColor,
+                  speed: values.lowerSpeed,
+                  isActive: values.lowerActive
+                }
+              };
+              handleSave('marquee', lowerData, []);
+            }}>
+            Save Lower
+          </Button>
+        }>
+          <Form form={marqueeForm} layout="vertical">
+            <Row gutter={16}>
+              <Col xs={24}>
+                <Form.Item name="lowerText" label="Text" rules={[{ required: true }]}>
+                  <Input placeholder="4L+ Happy Customers | Gifts @ 50% OFF" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={8}>
+                <Form.Item name="lowerBgColor" label="Background"
+                  getValueFromEvent={(c) => c?.toHexString()}
+                  getValueProps={(v) => ({ value: v || '#0d4b4b' })}>
+                  <ColorPicker showText />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={8}>
+                <Form.Item name="lowerTextColor" label="Text Color"
+                  getValueFromEvent={(c) => c?.toHexString()}
+                  getValueProps={(v) => ({ value: v || '#ffffff' })}>
+                  <ColorPicker showText />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={4}>
+                <Form.Item name="lowerSpeed" label="Speed">
+                  <InputNumber min={1} max={20} style={{ width: '100%' }} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} lg={4}>
+                <Form.Item name="lowerActive" label="Active" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </Card>
+      </Space>
     </Card>
   );
 

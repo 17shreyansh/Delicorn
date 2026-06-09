@@ -1,10 +1,12 @@
 import React from "react";
 import { Button } from "antd";
+import { useNavigate } from "react-router-dom";
 import image1 from "../assets/cta1.jpg"; // replace with your correct path
 import image2 from "../assets/cta2.jpg"; // replace with your correct path
 
 
 export default function JewelleryBanner() {
+  const navigate = useNavigate();
   return (
     <div
       style={{
@@ -95,6 +97,7 @@ export default function JewelleryBanner() {
 
         <Button
           type="primary"
+          onClick={() => navigate("/products")}
           style={{
             backgroundColor: "#004d40",
             borderColor: "#004d40",

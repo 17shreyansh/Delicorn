@@ -11,9 +11,7 @@ const Hero = () => {
   const [heroData, setHeroData] = useState(null);
   const [marqueeData, setMarqueeData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
-  // Default fallback data
   const defaultHeroData = {
     title: 'Discover Exquisite Jewelry',
     subtitle: 'Premium Ashta Dhatu and Fashion Jewelry crafted with love and tradition',
@@ -25,11 +23,13 @@ const Hero = () => {
   };
 
   const defaultMarqueeData = {
-    text: '4L+ Happy Customers | Gifts For Her @ 50% OFF | Ships in 24 hours',
-    backgroundColor: '#0d4b4b',
-    textColor: '#ffffff',
-    speed: 6,
-    isActive: true
+    lowerMarquee: {
+      text: '4L+ Happy Customers | Gifts For Her @ 50% OFF | Ships in 24 hours',
+      backgroundColor: '#0d4b4b',
+      textColor: '#ffffff',
+      speed: 6,
+      isActive: true
+    }
   };
 
   useEffect(() => {
@@ -44,11 +44,8 @@ const Hero = () => {
       ]);
       setHeroData(heroRes.data.data);
       setMarqueeData(marqueeRes.data.data);
-      setError(false);
     } catch (error) {
       console.error('Error fetching hero data:', error);
-      setError(true);
-      // Use defaults if API fails
       setHeroData(defaultHeroData);
       setMarqueeData(defaultMarqueeData);
     } finally {
@@ -56,11 +53,9 @@ const Hero = () => {
     }
   };
 
-  // Use fetched data or fallback to defaults
   const hero = heroData || defaultHeroData;
   const marquee = marqueeData || defaultMarqueeData;
 
-  // Handle background image path
   const bgImage = hero.backgroundImage?.startsWith('http') 
     ? hero.backgroundImage 
     : hero.backgroundImage?.startsWith('/uploads') || hero.backgroundImage?.startsWith('/assets')
@@ -146,22 +141,20 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Promotional Banner */}
-      {marquee.isActive && (
-        <div
-          style={{
-            backgroundColor: marquee.backgroundColor,
-            color: marquee.textColor,
-            textAlign: 'center',
-            padding: '6px 0',
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: "'Josefin Sans', sans-serif",
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <marquee behavior="scroll" direction="left" scrollamount={marquee.speed}>
-            {marquee.text} &nbsp;&nbsp;&nbsp; {marquee.text}
+      {/* Lower Marquee - After Hero */}
+      {marquee.lowerMarquee?.isActive && (
+        <div style={{
+          backgroundColor: marquee.lowerMarquee.backgroundColor,
+          color: marquee.lowerMarquee.textColor,
+          textAlign: 'center',
+          padding: '6px 0',
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: "'Josefin Sans', sans-serif",
+          whiteSpace: 'nowrap',
+        }}>
+          <marquee behavior="scroll" direction="left" scrollamount={marquee.lowerMarquee.speed}>
+            {marquee.lowerMarquee.text} &nbsp;&nbsp;&nbsp; {marquee.lowerMarquee.text}
           </marquee>
         </div>
       )}
