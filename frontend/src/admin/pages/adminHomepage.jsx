@@ -22,13 +22,13 @@ import {
     DeleteOutlined,
     EyeOutlined,
 } from '@ant-design/icons';
+import apiService from '../../services/api';
 import axios from 'axios';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-axios.defaults.withCredentials = true;
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const HomePageAdmin = () => {
     const [loading, setLoading] = useState(false);
@@ -63,11 +63,11 @@ const HomePageAdmin = () => {
         setLoading(true);
         try {
             const [banner, shipping, imageGrid, promo, footer] = await Promise.all([
-                axios.get(`${API_BASE_URL}/api/home/banner`),
-                axios.get(`${API_BASE_URL}/api/home/shipping-banner`),
-                axios.get(`${API_BASE_URL}/api/home/image-grid`),
-                axios.get(`${API_BASE_URL}/api/home/promo-banner`),
-                axios.get(`${API_BASE_URL}/api/home/footer-offer`)
+                axios.get(`${API_BASE_URL}/home/banner`, { withCredentials: true }),
+                axios.get(`${API_BASE_URL}/home/shipping-banner`, { withCredentials: true }),
+                axios.get(`${API_BASE_URL}/home/image-grid`, { withCredentials: true }),
+                axios.get(`${API_BASE_URL}/home/promo-banner`, { withCredentials: true }),
+                axios.get(`${API_BASE_URL}/home/footer-offer`, { withCredentials: true })
             ]);
 
             setBannerData(banner.data.data);
@@ -230,9 +230,10 @@ const HomePageAdmin = () => {
             // --- END: Added Logging for FormData before sending ---
 
 
-            await axios.put(`${API_BASE_URL}/api/home/${endpoint}`, formData, {
+            await axios.put(`${API_BASE_URL}/home/${endpoint}`, formData, {
+                withCredentials: true,
                 headers: {
-                    'Content-Type': 'multipart/form-data', // This is crucial for FormData
+                    'Content-Type': 'multipart/form-data',
                 },
             });
             message.success(successMessage);
