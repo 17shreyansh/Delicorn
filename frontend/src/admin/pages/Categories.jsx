@@ -47,8 +47,7 @@ const CategoryAdminPage = () => {
     setLoading(true);
     try {
       const res = await axios.get(`${VITE_BACKEND_URL}/api/categories`);
-      // No need for client-side sorting by level and name if the backend handles it or we build the tree
-      setCategories(res.data);
+      setCategories(res.data.data || res.data);
     } catch (err) {
       console.error("Failed to load categories:", err.response?.data || err.message);
       message.error("Failed to load categories");
@@ -102,6 +101,7 @@ const CategoryAdminPage = () => {
       description: record.description,
       parent: record.parent ? record.parent._id : "",
       slug: record.slug,
+      productType: record.productType,
     });
     setModalVisible(true);
   };
@@ -306,8 +306,19 @@ const CategoryAdminPage = () => {
           form={form}
           layout="vertical"
           onFinish={onFinish}
-          initialValues={{ description: "", parent: "", slug: "" }}
+          initialValues={{ description: "", parent: "", slug: "", productType: "" }}
         >
+          <Form.Item
+            label="Product Type"
+            name="productType"
+            rules={[{ required: true, message: "Please select product type" }]}
+          >
+            <Select placeholder="Select product type">
+              <Option value="ashta-dhatu">Ashta Dhatu</Option>
+              <Option value="fashion-jewelry">Fashion Jewelry</Option>
+            </Select>
+          </Form.Item>
+
           <Form.Item
             label="Category Name"
             name="name"

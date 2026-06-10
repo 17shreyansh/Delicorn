@@ -12,7 +12,7 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 axios.defaults.withCredentials = true;
-const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const DynamicHomePage = () => {
   const [loading, setLoading] = useState(false);
@@ -37,10 +37,10 @@ const DynamicHomePage = () => {
     setLoading(true);
     try {
       const [hero, jewelry, slider, marquee] = await Promise.all([
-        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/hero`),
-        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/jewelry`),
-        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/slider`),
-        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/marquee`)
+        axios.get(`${API_BASE}/api/dynamic-home/hero`),
+        axios.get(`${API_BASE}/api/dynamic-home/jewelry`),
+        axios.get(`${API_BASE}/api/dynamic-home/slider`),
+        axios.get(`${API_BASE}/api/dynamic-home/marquee`)
       ]);
 
       heroForm.setFieldsValue(hero.data.data);
@@ -65,7 +65,7 @@ const DynamicHomePage = () => {
           uid: hero.data.data.backgroundImage,
           name: hero.data.data.backgroundImage.split('/').pop(),
           status: 'done',
-          url: `${VITE_BACKEND_URL}${hero.data.data.backgroundImage}`
+          url: `${API_BASE}${hero.data.data.backgroundImage}`
         }]);
       }
 
@@ -74,7 +74,7 @@ const DynamicHomePage = () => {
           uid: jewelry.data.data.backgroundImage,
           name: jewelry.data.data.backgroundImage.split('/').pop(),
           status: 'done',
-          url: `${VITE_BACKEND_URL}${jewelry.data.data.backgroundImage}`
+          url: `${API_BASE}${jewelry.data.data.backgroundImage}`
         }]);
       }
 
@@ -83,7 +83,7 @@ const DynamicHomePage = () => {
           uid: img.url,
           name: img.alt,
           status: 'done',
-          url: `${VITE_BACKEND_URL}${img.url}`,
+          url: `${API_BASE}${img.url}`,
           response: { url: img.url }
         }));
         setSliderFileList(files);
@@ -152,7 +152,7 @@ const DynamicHomePage = () => {
         console.log(pair[0] + ':', pair[1]);
       }
 
-      const response = await axios.put(`${VITE_BACKEND_URL}/api/dynamic-home/${endpoint}`, formData, {
+      const response = await axios.put(`${API_BASE}/api/dynamic-home/${endpoint}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -334,7 +334,7 @@ const DynamicHomePage = () => {
               }
               setSliderFileList(fileList);
               const imgs = fileList.map((f, i) => ({
-                url: f.url?.replace(VITE_BACKEND_URL, '') || f.uid,
+                url: f.url?.replace(API_BASE, '') || f.uid,
                 alt: f.name?.split('.')[0] || `Slide ${i + 1}`,
                 order: i + 1
               }));
