@@ -23,7 +23,7 @@ import axios from "axios";
 const { Option } = Select;
 const { TextArea } = Input;
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const VITE_BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 axios.defaults.withCredentials = true;
 
 const CategoryAdminPage = () => {
@@ -46,7 +46,7 @@ const CategoryAdminPage = () => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/categories`);
+      const res = await axios.get(`${VITE_BACKEND_URL}/api/categories`);
       // No need for client-side sorting by level and name if the backend handles it or we build the tree
       setCategories(res.data);
     } catch (err) {
@@ -73,12 +73,12 @@ const CategoryAdminPage = () => {
 
       if (editingCategory) {
         await axios.put(
-          `${API_BASE_URL}/api/categories/${editingCategory._id}`,
+          `${VITE_BACKEND_URL}/api/categories/${editingCategory._id}`,
           dataToSend
         );
         message.success("Category updated successfully!");
       } else {
-        await axios.post(`${API_BASE_URL}/api/categories`, dataToSend);
+        await axios.post(`${VITE_BACKEND_URL}/api/categories`, dataToSend);
         message.success("Category created successfully!");
       }
       fetchCategories();
@@ -108,7 +108,7 @@ const CategoryAdminPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/api/categories/${id}`);
+      await axios.delete(`${VITE_BACKEND_URL}/api/categories/${id}`);
       message.success("Category deleted successfully!");
       fetchCategories();
     } catch (err) {

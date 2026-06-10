@@ -5,11 +5,11 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const VITE_BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: VITE_BACKEND_URL,
   withCredentials: true, // Always send cookies
   headers: {
     'Content-Type': 'application/json',

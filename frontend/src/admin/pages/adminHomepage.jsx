@@ -28,7 +28,7 @@ import axios from 'axios';
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const VITE_BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const HomePageAdmin = () => {
     const [loading, setLoading] = useState(false);
@@ -63,11 +63,11 @@ const HomePageAdmin = () => {
         setLoading(true);
         try {
             const [banner, shipping, imageGrid, promo, footer] = await Promise.all([
-                axios.get(`${API_BASE_URL}/home/banner`, { withCredentials: true }),
-                axios.get(`${API_BASE_URL}/home/shipping-banner`, { withCredentials: true }),
-                axios.get(`${API_BASE_URL}/home/image-grid`, { withCredentials: true }),
-                axios.get(`${API_BASE_URL}/home/promo-banner`, { withCredentials: true }),
-                axios.get(`${API_BASE_URL}/home/footer-offer`, { withCredentials: true })
+                axios.get(`${VITE_BACKEND_URL}/home/banner`, { withCredentials: true }),
+                axios.get(`${VITE_BACKEND_URL}/home/shipping-banner`, { withCredentials: true }),
+                axios.get(`${VITE_BACKEND_URL}/home/image-grid`, { withCredentials: true }),
+                axios.get(`${VITE_BACKEND_URL}/home/promo-banner`, { withCredentials: true }),
+                axios.get(`${VITE_BACKEND_URL}/home/footer-offer`, { withCredentials: true })
             ]);
 
             setBannerData(banner.data.data);
@@ -91,7 +91,7 @@ const HomePageAdmin = () => {
                     uid: banner.data.data.image,
                     name: banner.data.data.image.split('/').pop(),
                     status: 'done',
-                    url: `${API_BASE_URL}${banner.data.data.image}`,
+                    url: `${VITE_BACKEND_URL}${banner.data.data.image}`,
                     response: { url: banner.data.data.image }
                 }]);
             } else {
@@ -103,7 +103,7 @@ const HomePageAdmin = () => {
                     uid: shipping.data.data.image,
                     name: shipping.data.data.image.split('/').pop(),
                     status: 'done',
-                    url: `${API_BASE_URL}${shipping.data.data.image}`,
+                    url: `${VITE_BACKEND_URL}${shipping.data.data.image}`,
                     response: { url: shipping.data.data.image }
                 }]);
             } else {
@@ -115,7 +115,7 @@ const HomePageAdmin = () => {
                     uid: img.url, // Use the actual URL as UID for existing images
                     name: img.alt || img.url.split('/').pop(),
                     status: 'done',
-                    url: `${API_BASE_URL}${img.url}`,
+                    url: `${VITE_BACKEND_URL}${img.url}`,
                     response: { url: img.url }
                 }));
                 setImageGridFileList(mappedFiles);
@@ -133,7 +133,7 @@ const HomePageAdmin = () => {
                 uid: promo.data.data.image,
                 name: promo.data.data.image.split('/').pop(),
                 status: 'done',
-                url: `${API_BASE_URL}${promo.data.data.image}`,
+                url: `${VITE_BACKEND_URL}${promo.data.data.image}`,
                 response: { url: promo.data.data.image }
             }]);
         } else {
@@ -215,8 +215,8 @@ const HomePageAdmin = () => {
             // If no new file was uploaded AND there's an existing imageUrl from promoData,
             // append the existing imageUrl as a regular text field.
             if (endpoint === 'promo-banner' && !newFileAppended && promoData?.image) {
-            const relativeImageUrl = promoData.image.startsWith(API_BASE_URL) ? 
-                                     promoData.image.replace(API_BASE_URL, '') : 
+            const relativeImageUrl = promoData.image.startsWith(VITE_BACKEND_URL) ? 
+                                     promoData.image.replace(VITE_BACKEND_URL, '') : 
                                      promoData.image;
             formData.append(fileFieldName, relativeImageUrl);
         }
@@ -230,7 +230,7 @@ const HomePageAdmin = () => {
             // --- END: Added Logging for FormData before sending ---
 
 
-            await axios.put(`${API_BASE_URL}/home/${endpoint}`, formData, {
+            await axios.put(`${VITE_BACKEND_URL}/home/${endpoint}`, formData, {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -489,7 +489,7 @@ const HomePageAdmin = () => {
 
                                     // For existing files, use their actual URL from the backend data
                                     // For new files, use their temporary UID (which will be replaced by server URL after upload)
-                                    const imageUrlForForm = file.url && !file.originFileObj ? file.url.replace(API_BASE_URL, '') : file.uid;
+                                    const imageUrlForForm = file.url && !file.originFileObj ? file.url.replace(VITE_BACKEND_URL, '') : file.uid;
 
                                     return {
                                         url: imageUrlForForm,
@@ -523,7 +523,7 @@ const HomePageAdmin = () => {
                                                 <Col span={24}>
                                                     <Text strong>Alt Text for {file.name}</Text>
                                                     {file.url && !file.originFileObj && (
-                                                        <Text type="secondary" style={{ marginLeft: 8 }}>({file.url.replace(API_BASE_URL, '')})</Text>
+                                                        <Text type="secondary" style={{ marginLeft: 8 }}>({file.url.replace(VITE_BACKEND_URL, '')})</Text>
                                                     )}
                                                 </Col>
                                                 <Col xs={24} lg={20}>

@@ -1,6 +1,6 @@
 // API Routes Configuration
-export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-export const API_URL = `${API_BASE_URL}/api`;
+export const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+export const API_URL = `${VITE_BACKEND_URL}/api`;
 
 export const API_ROUTES = {
   // Authentication

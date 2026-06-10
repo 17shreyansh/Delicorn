@@ -5,7 +5,7 @@ import axios from 'axios';
 import image from '../assets/hero1.jpg';
 
 const { Title, Paragraph } = Typography;
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const Hero = () => {
   const [heroData, setHeroData] = useState(null);
@@ -39,8 +39,8 @@ const Hero = () => {
   const fetchDynamicData = async () => {
     try {
       const [heroRes, marqueeRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/dynamic-home/hero`),
-        axios.get(`${API_BASE_URL}/api/dynamic-home/marquee`)
+        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/hero`),
+        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/marquee`)
       ]);
       setHeroData(heroRes.data.data);
       setMarqueeData(marqueeRes.data.data);
@@ -59,7 +59,7 @@ const Hero = () => {
   const bgImage = hero.backgroundImage?.startsWith('http') 
     ? hero.backgroundImage 
     : hero.backgroundImage?.startsWith('/uploads') || hero.backgroundImage?.startsWith('/assets')
-    ? `${API_BASE_URL}${hero.backgroundImage}`
+    ? `${VITE_BACKEND_URL}${hero.backgroundImage}`
     : hero.backgroundImage;
 
   if (loading) {

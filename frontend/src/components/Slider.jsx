@@ -8,7 +8,7 @@ import c3 from "../assets/s3.png";
 import c4 from "../assets/s4.jpg";
 import c5 from "../assets/s5.jpg";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const defaultSlides = [
   { url: c1, alt: "Slider 1", order: 1 },
@@ -35,7 +35,7 @@ const Slider = () => {
 
   const fetchSliderData = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/dynamic-home/slider`);
+      const res = await axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/slider`);
       if (res.data.data?.images?.length > 0) {
         const sortedImages = res.data.data.images.sort((a, b) => a.order - b.order);
         setSlides(sortedImages);
@@ -125,7 +125,7 @@ const Slider = () => {
           const imgUrl = typeof img.url === 'string' && img.url.startsWith('http') 
             ? img.url 
             : typeof img.url === 'string' && (img.url.startsWith('/uploads') || img.url.startsWith('/assets'))
-            ? `${API_BASE_URL}${img.url}`
+            ? `${VITE_BACKEND_URL}${img.url}`
             : img.url;
           return (
             <SwiperSlide

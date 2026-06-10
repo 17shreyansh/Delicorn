@@ -36,7 +36,7 @@ const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 axios.defaults.withCredentials = true;
 
 // Drag and Drop Types
@@ -138,7 +138,7 @@ const AdminMenuPage = () => {
   const fetchCategories = async () => {
     setCategoriesLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/categories`);
+      const response = await axios.get(`${VITE_BACKEND_URL}/api/categories`);
       if (response.data) {
         setCategories(response.data);
       }
@@ -154,7 +154,7 @@ const AdminMenuPage = () => {
   const fetchMenus = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/menus/admin`);
+      const response = await axios.get(`${VITE_BACKEND_URL}/api/menus/admin`);
       if (response.data && response.data.success) {
         // Sort menus by their 'order' property
         const sortedMenus = response.data.data.sort((a, b) => a.order - b.order);
@@ -267,13 +267,13 @@ const AdminMenuPage = () => {
 
       if (editingMenu) {
         // When editing, send a PUT request to the specific menu ID
-        await axios.put(`${API_BASE_URL}/api/menus/${editingMenu._id}`, menuData);
+        await axios.put(`${VITE_BACKEND_URL}/api/menus/${editingMenu._id}`, menuData);
         message.success('Menu updated successfully');
       } else {
         // When adding a new menu, assign it the highest order + 1
         const maxOrder = menus.reduce((max, menu) => Math.max(max, menu.order), -1);
         menuData.order = maxOrder + 1; // Assign order for new menu
-        await axios.post(`${API_BASE_URL}/api/menus`, menuData);
+        await axios.post(`${VITE_BACKEND_URL}/api/menus`, menuData);
         message.success('Menu created successfully');
       }
 
@@ -292,7 +292,7 @@ const AdminMenuPage = () => {
   // Handle delete
   const handleDelete = async (menuId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/api/menus/${menuId}`);
+      await axios.delete(`${VITE_BACKEND_URL}/api/menus/${menuId}`);
       message.success('Menu deleted successfully');
       fetchMenus();
     } catch (error) {
@@ -348,7 +348,7 @@ const AdminMenuPage = () => {
             // Only update if the order has actually changed to minimize requests
             const originalMenu = menus.find(m => m._id === menuItem._id);
             if (!originalMenu || originalMenu.order !== menuItem.order) {
-                await axios.put(`${API_BASE_URL}/api/menus/${menuItem._id}`, { order: menuItem.order });
+                await axios.put(`${VITE_BACKEND_URL}/api/menus/${menuItem._id}`, { order: menuItem.order });
             }
           })
         );

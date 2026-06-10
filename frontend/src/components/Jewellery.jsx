@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import jewelleryImage from "../assets/jewelleryImage.jpg";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const JewelleryCircleBanner = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -33,7 +33,7 @@ const JewelleryCircleBanner = () => {
 
   const fetchBannerData = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/dynamic-home/jewelry`);
+      const res = await axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/jewelry`);
       if (res.data.data) {
         setBannerData(res.data.data);
       }
@@ -46,7 +46,7 @@ const JewelleryCircleBanner = () => {
   const bgImage = typeof bannerData.backgroundImage === 'string' && bannerData.backgroundImage.startsWith('http') 
     ? bannerData.backgroundImage 
     : typeof bannerData.backgroundImage === 'string' && (bannerData.backgroundImage.startsWith('/uploads') || bannerData.backgroundImage.startsWith('/assets'))
-    ? `${API_BASE_URL}${bannerData.backgroundImage}`
+    ? `${VITE_BACKEND_URL}${bannerData.backgroundImage}`
     : bannerData.backgroundImage;
 
   const containerStyle = {

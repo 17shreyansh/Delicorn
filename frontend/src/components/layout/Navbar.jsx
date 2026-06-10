@@ -9,7 +9,7 @@ import { useUser } from '../../context/UserContext';
 import apiService from '../../services/api';
 
 const { Header } = Layout;
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const Navbar = () => {
 
   const fetchMarqueeData = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/dynamic-home/marquee`);
+      const response = await axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/marquee`);
       setMarqueeData(response.data.data?.upperMarquee || defaultMarquee);
     } catch (error) {
       console.error('Error fetching marquee:', error);

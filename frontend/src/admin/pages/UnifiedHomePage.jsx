@@ -12,7 +12,7 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 axios.defaults.withCredentials = true;
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const UnifiedHomePage = () => {
   const [loading, setLoading] = useState(false);
@@ -37,10 +37,10 @@ const UnifiedHomePage = () => {
     setLoading(true);
     try {
       const [hero, jewelry, slider, marquee] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/dynamic-home/hero`).catch(() => ({ data: { data: null } })),
-        axios.get(`${API_BASE_URL}/api/dynamic-home/jewelry`).catch(() => ({ data: { data: null } })),
-        axios.get(`${API_BASE_URL}/api/dynamic-home/slider`).catch(() => ({ data: { data: null } })),
-        axios.get(`${API_BASE_URL}/api/dynamic-home/marquee`).catch(() => ({ data: { data: null } }))
+        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/hero`).catch(() => ({ data: { data: null } })),
+        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/jewelry`).catch(() => ({ data: { data: null } })),
+        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/slider`).catch(() => ({ data: { data: null } })),
+        axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/marquee`).catch(() => ({ data: { data: null } }))
       ]);
 
       if (hero.data.data) heroForm.setFieldsValue(hero.data.data);
@@ -52,7 +52,7 @@ const UnifiedHomePage = () => {
           uid: hero.data.data.backgroundImage,
           name: hero.data.data.backgroundImage.split('/').pop(),
           status: 'done',
-          url: `${API_BASE_URL}${hero.data.data.backgroundImage}`
+          url: `${VITE_BACKEND_URL}${hero.data.data.backgroundImage}`
         }]);
       }
 
@@ -61,7 +61,7 @@ const UnifiedHomePage = () => {
           uid: jewelry.data.data.backgroundImage,
           name: jewelry.data.data.backgroundImage.split('/').pop(),
           status: 'done',
-          url: `${API_BASE_URL}${jewelry.data.data.backgroundImage}`
+          url: `${VITE_BACKEND_URL}${jewelry.data.data.backgroundImage}`
         }]);
       }
 
@@ -70,7 +70,7 @@ const UnifiedHomePage = () => {
           uid: img.url,
           name: img.alt,
           status: 'done',
-          url: `${API_BASE_URL}${img.url}`
+          url: `${VITE_BACKEND_URL}${img.url}`
         }));
         setSliderFileList(files);
         sliderForm.setFieldsValue({ images: slider.data.data.images });
@@ -125,7 +125,7 @@ const UnifiedHomePage = () => {
         }
       });
 
-      const response = await axios.put(`${API_BASE_URL}/api/dynamic-home/${endpoint}`, formData, {
+      const response = await axios.put(`${VITE_BACKEND_URL}/api/dynamic-home/${endpoint}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -275,7 +275,7 @@ const UnifiedHomePage = () => {
                   }
                   setSliderFileList(fileList);
                   const imgs = fileList.map((f, i) => ({
-                    url: f.url?.replace(API_BASE_URL, '') || f.uid,
+                    url: f.url?.replace(VITE_BACKEND_URL, '') || f.uid,
                     alt: f.name?.split('.')[0] || `Slide ${i + 1}`,
                     order: i + 1
                   }));
