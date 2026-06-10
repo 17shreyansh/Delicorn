@@ -35,40 +35,21 @@ const app = express();
 
 // Middleware setup
 app.use(cors({
-    origin: function(origin, callback) {
-        const allowedOrigins = [
-            'http://localhost:5173', 
-            'http://localhost:3000', 
-            'http://127.0.0.1:5173',
-            'https://delicorn.in',
-            'https://www.delicorn.in',
-            'http://delicorn.in'
-        ];
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://delicorn.in', 'https://www.delicorn.in', 'http://delicorn.in'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    optionsSuccessStatus: 200
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: false })); // Parse URL-encoded request bodies
 
-// IMPORTANT: Add cookie-parser middleware BEFORE your routes.
-// This middleware parse    s the cookies from the incoming request and populates req.cookies.
 app.use(cookieParser());
 
 // Handle preflight requests for all routes
 // app.options('*', cors());
 
-// Serve static files from the 'uploads' directory
-// When a request comes for /uploads, it will look in the actual 'uploads' folder
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // <--- NEW: Serve static uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
