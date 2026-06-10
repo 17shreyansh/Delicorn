@@ -77,6 +77,8 @@ app.use(cors({
         'http://localhost:3000', 
         'http://127.0.0.1:5173',
         'https://delicorn.in',
+        'https://www.delicorn.in',
+
         'http://delicorn.in'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -91,6 +93,9 @@ app.use(express.urlencoded({ extended: false })); // Parse URL-encoded request b
 // IMPORTANT: Add cookie-parser middleware BEFORE your routes.
 // This middleware parse    s the cookies from the incoming request and populates req.cookies.
 app.use(cookieParser());
+
+// Handle preflight requests for all routes
+app.options('*', cors());
 
 // Serve static files from the 'uploads' directory
 // When a request comes for /uploads, it will look in the actual 'uploads' folder
