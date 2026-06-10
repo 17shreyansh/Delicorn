@@ -6,12 +6,13 @@ import {
 import {
   SaveOutlined, PlusOutlined, DeleteOutlined, EyeOutlined, UpOutlined, DownOutlined
 } from '@ant-design/icons';
+  import apiService from '../../services/api';
 import axios from 'axios';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-axios.defaults.withCredentials = true;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const DynamicHomePage = () => {
@@ -36,17 +37,24 @@ const DynamicHomePage = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [hero, jewelry, slider, marquee] = await Promise.all([
-        axios.get(`${API_BASE}/dynamic-home/hero`),
-        axios.get(`${API_BASE}/dynamic-home/jewelry`),
-        axios.get(`${API_BASE}/dynamic-home/slider`),
-        axios.get(`${API_BASE}/dynamic-home/marquee`)
-      ]);
-
-      heroForm.setFieldsValue(hero.data.data);
-      jewelryForm.setFieldsValue(jewelry.data.data);
+      const heroReq = fetch(`${API_BASE}/dynamic-home/hero`, { credentials: 'include' });
+      const jewelryReq = fetch(`${API_BASE}/dynamic-home/jewelry`, { credentials: 'include' });
+      const sliderReq = fetch(`${API_BASE}/dynamic-home/slider`, { credentials: 'include' });
+      const marqueeReq = fetch(`${API_BASE}/dynamic-home/marquee`, { credentials: 'include' });
       
-      const mData = marquee.data.data;
+      const [heroRes, jewelryRes, sliderRes, marqueeRes] = await Promise.all([
+        heroReq, jewelryReq, sliderReq, marqueeReq
+      ]);
+      
+      const hero = await heroRes.json();
+      const jewelry = await jewelryRes.json();
+      const slider = await sliderRes.json();
+      const marquee = await marqueeRes.json();
+
+      heroForm.setFieldsValue(hero.data);
+      jewelryForm.setFieldsValue(jewelry.data);
+      
+      const mData = marquee.data;
       marqueeForm.setFieldsValue({
         upperText: mData.upperMarquee?.text,
         upperBgColor: mData.upperMarquee?.backgroundColor,
@@ -60,34 +68,34 @@ const DynamicHomePage = () => {
         lowerActive: mData.lowerMarquee?.isActive
       });
 
-      if (hero.data.data?.backgroundImage) {
+      if (hero.data?.backgroundImage) {
         setHeroFileList([{
-          uid: hero.data.data.backgroundImage,
-          name: hero.data.data.backgroundImage.split('/').pop(),
+          uid: hero.data.backgroundImage,
+          name: hero.data.backgroundImage.split('/').pop(),
           status: 'done',
-          url: `${API_BASE.replace('/api', '')}${hero.data.data.backgroundImage}`
+          url: `${BACKEND_URL}${hero.data.backgroundImage}`
         }]);
       }
 
-      if (jewelry.data.data?.backgroundImage) {
+      if (jewelry.data?.backgroundImage) {
         setJewelryFileList([{
-          uid: jewelry.data.data.backgroundImage,
-          name: jewelry.data.data.backgroundImage.split('/').pop(),
+          uid: jewelry.data.backgroundImage,
+          name: jewelry.data.backgroundImage.split('/').pop(),
           status: 'done',
-          url: `${API_BASE.replace('/api', '')}${jewelry.data.data.backgroundImage}`
+          url: `${BACKEND_URL}${jewelry.data.backgroundImage}`
         }]);
       }
 
-      if (slider.data.data?.images?.length > 0) {
-        const files = slider.data.data.images.map(img => ({
+      if (slider.data?.images?.length > 0) {
+        const files = slider.data.images.map(img => ({
           uid: img.url,
           name: img.alt,
           status: 'done',
-          url: `${API_BASE.replace('/api', '')}${img.url}`,
+          url: `${BACKEND_URL}${img.url}`,
           response: { url: img.url }
         }));
         setSliderFileList(files);
-        sliderForm.setFieldsValue({ images: slider.data.data.images });
+        sliderForm.setFieldsValue({ images: slider.data.images });
       }
     } catch (error) {
       message.error('Failed to fetch data');
@@ -152,16 +160,24 @@ const DynamicHomePage = () => {
         console.log(pair[0] + ':', pair[1]);
       }
 
-      const response = await axios.put(`${API_BASE}/dynamic-home/${endpoint}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const response = await fetch(`${API_BASE}/dynamic-home/${endpoint}`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: formData
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
 
-      console.log('Response:', response.data);
-      message.success(response.data.message || 'Updated successfully');
+      console.log('Response:', result);
+      message.success(result.message || 'Updated successfully');
       await fetchAllData();
     } catch (error) {
       console.error('Save error:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to save';
+      const errorMsg = error.message || 'Failed to save';
       message.error(errorMsg);
     } finally {
       setSaving(false);
@@ -334,7 +350,7 @@ const DynamicHomePage = () => {
               }
               setSliderFileList(fileList);
               const imgs = fileList.map((f, i) => ({
-                url: f.url?.replace(API_BASE.replace('/api', ''), '') || f.uid,
+                url: f.url?.replace(BACKEND_URL, '') || f.uid,
                 alt: f.name?.split('.')[0] || `Slide ${i + 1}`,
                 order: i + 1
               }));
