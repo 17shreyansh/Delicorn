@@ -3,6 +3,8 @@ import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, Upload,
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import apiService from '../../services/api';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -90,7 +92,7 @@ const FashionJewelryCategories = () => {
       render: (image) => (
         image ? (
           <Image
-            src={`http://localhost:3001${image}`}
+            src={`${BACKEND_URL}${image}`}
             alt="Category"
             width={50}
             height={50}

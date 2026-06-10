@@ -6,10 +6,14 @@ import p1 from "../../assets/p1.png";
 import p2 from "../../assets/p2.png";
 
 const ProductCategories = () => {
-  // Simple slide-up animation from the bottom for the overlay
   const slideUpVariants = {
     rest: { y: "100%" },
     hover: { y: 0 },
+  };
+
+  const imageVariants = {
+    rest: { scale: 1 },
+    hover: { scale: 1.05 },
   };
 
   return (
@@ -61,91 +65,87 @@ const ProductCategories = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                {/* Hover detection wrapper (Covers Image AND Text) */}
-                <motion.div
-                  initial="rest"
-                  whileHover="hover"
-                  animate="rest"
-                  style={{ cursor: "pointer", display: "inline-block", width: "100%" }}
-                >
-                  <div
-                    style={{
-                      position: "relative",
-                      maxWidth: "380px",
-                      margin: "0 auto",
-                      overflow: "hidden", // Keeps the sliding text inside the box
-                    }}
+                <Link to="/ashta-dhatu" style={{ textDecoration: "none" }}>
+                  <motion.div
+                    initial="rest"
+                    whileHover="hover"
+                    animate="rest"
+                    style={{ cursor: "pointer", display: "inline-block", width: "100%" }}
                   >
-                    {/* Static Image */}
-                    <img
-                      src={p1}
-                      alt="Ashtadhatu Jewellery"
+                    <div
                       style={{
-                        width: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
-
-                    {/* Clean slide-up bar from bottom */}
-                    <motion.div
-                      variants={slideUpVariants}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        backgroundColor: "rgba(255, 255, 255, 0.95)", // Clean white bar
-                        padding: "16px 0",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderTop: "1px solid #eaeaea",
+                        position: "relative",
+                        maxWidth: "380px",
+                        margin: "0 auto",
+                        overflow: "hidden",
                       }}
                     >
-                      <span
+                      <motion.img
+                        src={p1}
+                        alt="Ashtadhatu Jewellery"
+                        variants={imageVariants}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
                         style={{
-                          color: "#0d4b4b",
-                          fontFamily: "'Prata', serif",
-                          fontSize: "20px",
-                          letterSpacing: "1px",
+                          width: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                      />
+
+                      <motion.div
+                        variants={slideUpVariants}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          backgroundColor: "rgba(255, 255, 255, 0.95)",
+                          padding: "16px 0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderTop: "1px solid #eaeaea",
                         }}
                       >
-                        Explore More
-                      </span>
-                    </motion.div>
-                  </div>
+                        <span
+                          style={{
+                            color: "#0d4b4b",
+                            fontFamily: "'Prata', serif",
+                            fontSize: "20px",
+                            letterSpacing: "1px",
+                          }}
+                        >
+                          Explore More
+                        </span>
+                      </motion.div>
+                    </div>
 
-                  {/* Text under image */}
-                  <p
-                    style={{
-                      fontStyle: "italic",
-                      color: "#5f5f5f",
-                      fontSize: "18px",
-                      marginTop: "24px",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Unveil the Sacred
-                  </p>
+                    <p
+                      style={{
+                        fontStyle: "italic",
+                        color: "#5f5f5f",
+                        fontSize: "18px",
+                        marginTop: "24px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Unveil the Sacred
+                    </p>
 
-                  <Link
-                    to="/ashta-dhatu"
-                    style={{
-                      display: "inline-block",
-                      fontFamily: "'Prata', serif",
-                      fontSize: "28px",
-                      color: "#0d4b4b",
-                      textDecoration: "none",
-                      transition: "color 0.3s ease",
-                    }}
-                    onMouseEnter={(e) => (e.target.style.color = "#1a6a6a")}
-                    onMouseLeave={(e) => (e.target.style.color = "#0d4b4b")}
-                  >
-                    Explore Religious Products
-                  </Link>
-                </motion.div>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        fontFamily: "'Prata', serif",
+                        fontSize: "28px",
+                        color: "#0d4b4b",
+                        transition: "color 0.3s ease",
+                      }}
+                    >
+                      Explore Religious Products
+                    </span>
+                  </motion.div>
+                </Link>
               </motion.div>
             </Col>
 
@@ -158,91 +158,87 @@ const ProductCategories = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                {/* Hover detection wrapper (Covers Image AND Text) */}
-                <motion.div
-                  initial="rest"
-                  whileHover="hover"
-                  animate="rest"
-                  style={{ cursor: "pointer", display: "inline-block", width: "100%" }}
-                >
-                  <div
-                    style={{
-                      position: "relative",
-                      maxWidth: "380px",
-                      margin: "0 auto",
-                      overflow: "hidden",
-                    }}
+                <Link to="/fashion-jewelry" style={{ textDecoration: "none" }}>
+                  <motion.div
+                    initial="rest"
+                    whileHover="hover"
+                    animate="rest"
+                    style={{ cursor: "pointer", display: "inline-block", width: "100%" }}
                   >
-                    {/* Static Image */}
-                    <img
-                      src={p2}
-                      alt="Fashion Jewellery"
+                    <div
                       style={{
-                        width: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
-
-                    {/* Clean slide-up bar from bottom */}
-                    <motion.div
-                      variants={slideUpVariants}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        backgroundColor: "rgba(255, 255, 255, 0.95)", // Clean white bar
-                        padding: "16px 0",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderTop: "1px solid #eaeaea",
+                        position: "relative",
+                        maxWidth: "380px",
+                        margin: "0 auto",
+                        overflow: "hidden",
                       }}
                     >
-                      <span
+                      <motion.img
+                        src={p2}
+                        alt="Fashion Jewellery"
+                        variants={imageVariants}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
                         style={{
-                          color: "#0d4b4b",
-                          fontFamily: "'Prata', serif",
-                          fontSize: "20px",
-                          letterSpacing: "1px",
+                          width: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                      />
+
+                      <motion.div
+                        variants={slideUpVariants}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        style={{
+                          position: "absolute",
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          backgroundColor: "rgba(255, 255, 255, 0.95)",
+                          padding: "16px 0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderTop: "1px solid #eaeaea",
                         }}
                       >
-                        Explore More
-                      </span>
-                    </motion.div>
-                  </div>
+                        <span
+                          style={{
+                            color: "#0d4b4b",
+                            fontFamily: "'Prata', serif",
+                            fontSize: "20px",
+                            letterSpacing: "1px",
+                          }}
+                        >
+                          Explore More
+                        </span>
+                      </motion.div>
+                    </div>
 
-                  {/* Text under image */}
-                  <p
-                    style={{
-                      fontStyle: "italic",
-                      color: "#5f5f5f",
-                      fontSize: "18px",
-                      marginTop: "24px",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Define Your Style
-                  </p>
+                    <p
+                      style={{
+                        fontStyle: "italic",
+                        color: "#5f5f5f",
+                        fontSize: "18px",
+                        marginTop: "24px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Define Your Style
+                    </p>
 
-                  <Link
-                    to="/fashion-jewelry"
-                    style={{
-                      display: "inline-block",
-                      fontFamily: "'Prata', serif",
-                      fontSize: "28px",
-                      color: "#0d4b4b",
-                      textDecoration: "none",
-                      transition: "color 0.3s ease",
-                    }}
-                    onMouseEnter={(e) => (e.target.style.color = "#1a6a6a")}
-                    onMouseLeave={(e) => (e.target.style.color = "#0d4b4b")}
-                  >
-                    Shop Fashion Jewellery
-                  </Link>
-                </motion.div>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        fontFamily: "'Prata', serif",
+                        fontSize: "28px",
+                        color: "#0d4b4b",
+                        transition: "color 0.3s ease",
+                      }}
+                    >
+                      Shop Fashion Jewellery
+                    </span>
+                  </motion.div>
+                </Link>
               </motion.div>
             </Col>
           </Row>

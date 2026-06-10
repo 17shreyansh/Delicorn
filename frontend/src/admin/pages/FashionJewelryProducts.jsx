@@ -4,6 +4,8 @@ import { Table, Button, Form, Input, InputNumber, Select, message, Popconfirm, U
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import apiService from '../../services/api';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -118,7 +120,7 @@ const FashionJewelryProducts = () => {
       render: (image) => (
         image ? (
           <Image
-            src={`http://localhost:3001${image}`}
+            src={`${BACKEND_URL}${image}`}
             alt="Product"
             width={50}
             height={50}
