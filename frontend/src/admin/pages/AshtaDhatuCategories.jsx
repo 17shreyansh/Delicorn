@@ -17,8 +17,8 @@ const AshtaDhatuCategories = () => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await apiService.request('/categories?productType=ashta-dhatu');
-      setCategories(response.data || []);
+      const response = await apiService.getCategories({ productType: 'ashta-dhatu' });
+      setCategories(response.data || response || []);
     } catch (error) {
       message.error('Failed to load categories');
     }

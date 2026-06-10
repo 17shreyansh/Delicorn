@@ -17,7 +17,7 @@ const FashionJewelryProducts = () => {
     setLoading(true);
     try {
       const response = await apiService.getProductsByType('fashion-jewelry');
-      setProducts(response.data || []);
+      setProducts(response.data || response || []);
     } catch (error) {
       message.error('Failed to load products');
     }
@@ -26,8 +26,8 @@ const FashionJewelryProducts = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await apiService.request('/categories?productType=fashion-jewelry');
-      setCategories(response.data || []);
+      const response = await apiService.getCategories({ productType: 'fashion-jewelry' });
+      setCategories(response.data || response || []);
     } catch (error) {
       message.error('Failed to load categories');
     }
