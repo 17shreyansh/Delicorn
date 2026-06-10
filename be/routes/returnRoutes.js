@@ -1,6 +1,6 @@
 const express = require('express');
 const { getReturns, createReturn, updateReturnStatus } = require('../controllers/returnController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, isAdmin } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -11,6 +11,6 @@ router.route('/')
   .post(createReturn);
 
 router.route('/:id/status')
-  .put(admin, updateReturnStatus);
+  .put(isAdmin, updateReturnStatus);
 
 module.exports = router;

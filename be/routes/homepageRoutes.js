@@ -39,23 +39,19 @@ router.get('/footer-offer', getFooterOffer);
 router.put('/footer-offer', protect, isAdmin, updateFooterOffer);
 
 // Get all home page data at once
-// NOTE: This endpoint was problematic in your original code because individual controllers
-// were sending responses. This consolidated endpoint needs to fetch data directly
-// without calling the individual controller functions that send responses.
-// I've commented out the original problematic logic and provided a corrected structure.
+const { Banner, ShippingBanner, ImageGrid, PromoBanner, FooterOffer } = require('../controllers/homepageController');
 router.get('/all', async (req, res) => {
     try {
-        // Fetch data directly from models instead of calling controller functions
-        const banner = await require('../controllers/homepageController').Banner.findOne();
-        const shippingBanner = await require('../controllers/homepageController').ShippingBanner.findOne();
-        const imageGrid = await require('../controllers/homepageController').ImageGrid.findOne();
-        const promoBanner = await require('../controllers/homepageController').PromoBanner.findOne();
-        const footerOffer = await require('../controllers/homepageController').FooterOffer.findOne();
+        const banner = await Banner.findOne();
+        const shippingBanner = await ShippingBanner.findOne();
+        const imageGrid = await ImageGrid.findOne();
+        const promoBanner = await PromoBanner.findOne();
+        const footerOffer = await FooterOffer.findOne();
 
         res.json({
             success: true,
             data: {
-                banner: banner || {}, // Provide empty object if not found
+                banner: banner || {},
                 shippingBanner: shippingBanner || {},
                 imageGrid: imageGrid || {},
                 promoBanner: promoBanner || {},
