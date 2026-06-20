@@ -1,9 +1,24 @@
 const mongoose = require("mongoose");
 
 const categorySchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, lowercase: true, trim: true },
-  description: String,
+  name: { 
+    type: String, 
+    required: [true, 'Category name is required'], 
+    trim: true,
+    minlength: [3, 'Category name must be at least 3 characters'],
+    maxlength: [50, 'Category name cannot exceed 50 characters']
+  },
+  slug: { 
+    type: String, 
+    required: [true, 'Slug is required'], 
+    lowercase: true, 
+    trim: true,
+    match: [/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens']
+  },
+  description: {
+    type: String,
+    maxlength: [500, 'Description cannot exceed 500 characters']
+  },
   productType: {
     type: String,
     enum: ['ashta-dhatu', 'fashion-jewelry'],

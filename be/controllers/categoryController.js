@@ -8,6 +8,10 @@ exports.createCategory = async (req, res) => {
     await category.save();
     res.status(201).json({ success: true, data: category });
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
     if (err.code === 11000) { // Duplicate key error (for unique name/slug)
       return res.status(400).json({ error: "Category name or slug already exists." });
     }
@@ -53,6 +57,10 @@ exports.updateCategory = async (req, res) => {
     const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     res.json({ success: true, data: category });
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
     if (err.code === 11000) {
       return res.status(400).json({ error: "Category name or slug already exists." });
     }

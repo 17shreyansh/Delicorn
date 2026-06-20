@@ -39,9 +39,19 @@ const AshtaDhatuCategories = () => {
       };
 
       // Handle image upload if present
-      if (values.image && values.image.file) {
+      const fileToUpload = values.image?.originFileObj || values.image?.file?.originFileObj;
+      if (fileToUpload) {
         try {
-          const uploadResponse = await apiService.uploadImage(values.image.file, 'categories');
+          const uploadResponse = await apiService.uploadImage(fileToUpload, 'categories');
+          categoryData.image = uploadResponse.data.url;
+        } catch (uploadError) {
+          message.error('Failed to upload image');
+          return;
+        }
+      } else if (values.image && !values.image.originFileObj && typeof values.image !== 'string' && !values.image.file) {
+        // Fallback for direct File object if any
+        try {
+          const uploadResponse = await apiService.uploadImage(values.image, 'categories');
           categoryData.image = uploadResponse.data.url;
         } catch (uploadError) {
           message.error('Failed to upload image');
@@ -70,6 +80,16 @@ const AshtaDhatuCategories = () => {
   const handleEdit = (record) => {
     setEditingCategory(record);
     form.setFieldsValue(record);
+    if (record.image) {
+      setImageFileList([{
+        uid: '-1',
+        name: 'image.png',
+        status: 'done',
+        url: `${BACKEND_URL}${record.image}`,
+      }]);
+    } else {
+      setImageFileList([]);
+    }
     setModalVisible(true);
   };
 
@@ -152,6 +172,7 @@ const AshtaDhatuCategories = () => {
           onClick={() => {
             setModalVisible(true);
             setEditingCategory(null);
+            setImageFileList([]);
             form.resetFields();
           }}
         >
@@ -185,7 +206,11 @@ const AshtaDhatuCategories = () => {
           <Form.Item
             name="name"
             label="Category Name"
-            rules={[{ required: true, message: 'Please enter category name' }]}
+            rules={[
+              { required: true, message: 'Please enter category name' },
+              { min: 3, message: 'Name must be at least 3 characters' },
+              { max: 50, message: 'Name cannot exceed 50 characters' }
+            ]}
           >
             <Input placeholder="Enter category name" />
           </Form.Item>
@@ -193,7 +218,10 @@ const AshtaDhatuCategories = () => {
           <Form.Item
             name="slug"
             label="Slug"
-            rules={[{ required: true, message: 'Please enter slug' }]}
+            rules={[
+              { required: true, message: 'Please enter slug' },
+              { pattern: /^[a-z0-9-]+$/, message: 'Slug can only contain lowercase letters, numbers, and hyphens' }
+            ]}
           >
             <Input placeholder="Enter slug (URL-friendly)" />
           </Form.Item>
@@ -201,6 +229,9 @@ const AshtaDhatuCategories = () => {
           <Form.Item
             name="description"
             label="Description"
+            rules={[
+              { max: 500, message: 'Description cannot exceed 500 characters' }
+            ]}
           >
             <TextArea rows={4} placeholder="Enter category description" />
           </Form.Item>
@@ -212,7 +243,17 @@ const AshtaDhatuCategories = () => {
             <Upload
               listType="picture-card"
               maxCount={1}
-              beforeUpload={() => false}
+              beforeUpload={(file) => {
+                const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp';
+                if (!isJpgOrPng) {
+                  message.error('You can only upload JPG/PNG/WEBP file!');
+                }
+                const isLt2M = file.size / 1024 / 1024 < 2;
+                if (!isLt2M) {
+                  message.error('Image must smaller than 2MB!');
+                }
+                return false;
+              }}
               fileList={imageFileList}
               onChange={({ fileList }) => {
                 setImageFileList(fileList);

@@ -37,7 +37,7 @@ api.interceptors.response.use(
   },
   (error) => {
     const status = error.response?.status;
-    const message = error.response?.data?.message || error.message;
+    const message = error.response?.data?.error || error.response?.data?.message || error.message;
 
     console.error(`[API Error]`, error.config?.method?.toUpperCase(), error.config?.url, status, message);
 
