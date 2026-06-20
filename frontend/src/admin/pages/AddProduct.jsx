@@ -101,7 +101,7 @@ const AddProduct = () => {
         navigate('/admin/fashion-jewelry-products');
       }
     } catch (error) {
-      message.error('Failed to create product');
+      message.error(error.message || 'Failed to create product');
     } finally {
       setSaving(false);
     }

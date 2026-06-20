@@ -168,7 +168,7 @@ const EditProduct = () => {
       message.success('Product updated successfully!');
       navigate('/admin/products');
     } catch (error) {
-      message.error('Failed to update product');
+      message.error(error.message || 'Failed to update product');
     } finally {
       setSaving(false);
     }

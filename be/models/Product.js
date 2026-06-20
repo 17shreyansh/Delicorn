@@ -9,16 +9,32 @@ const sizeVariantSchema = new mongoose.Schema({
 }, { _id: false });
 
 const productSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
+  name: { 
+    type: String, 
+    required: [true, 'Product name is required'], 
+    trim: true,
+    minlength: [3, 'Product name must be at least 3 characters'],
+    maxlength: [100, 'Product name cannot exceed 100 characters']
+  },
   slug: { type: String, unique: true, lowercase: true },
   description: { type: String, trim: true },
-  price: { type: Number, required: true, min: 0 },
-  originalPrice: { type: Number, min: 0 },
+  price: { 
+    type: Number, 
+    required: [true, 'Price is required'], 
+    min: [0, 'Price cannot be negative'] 
+  },
+  originalPrice: { 
+    type: Number, 
+    min: [0, 'Original price cannot be negative'] 
+  },
   
   productType: {
     type: String,
-    enum: ["ashta-dhatu", "fashion-jewelry"],
-    required: true
+    enum: {
+      values: ["ashta-dhatu", "fashion-jewelry"],
+      message: '{VALUE} is not a supported product type'
+    },
+    required: [true, 'Product type is required']
   },
   
   // Size variants for different sizes and their stock

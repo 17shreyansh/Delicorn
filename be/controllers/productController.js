@@ -13,6 +13,13 @@ exports.createProduct = async (req, res) => {
     res.status(201).json({ success: true, data: product });
   } catch (err) {
     console.error("Error creating product:", err);
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
+    if (err.code === 11000) {
+      return res.status(400).json({ error: "Product with this slug or SKU already exists." });
+    }
     res.status(400).json({ error: err.message });
   }
 };
@@ -262,6 +269,13 @@ exports.updateProduct = async (req, res) => {
     res.json({ success: true, data: product });
   } catch (err) {
     console.error("Error updating product:", err);
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
+    if (err.code === 11000) {
+      return res.status(400).json({ error: "Product with this slug or SKU already exists." });
+    }
     res.status(400).json({ error: err.message });
   }
 };
