@@ -24,10 +24,16 @@ const DynamicHomePage = () => {
   const [jewelryForm] = Form.useForm();
   const [sliderForm] = Form.useForm();
   const [marqueeForm] = Form.useForm();
+  const [ctaForm] = Form.useForm();
+  const [jewelrySaleForm] = Form.useForm();
 
   const [heroFileList, setHeroFileList] = useState([]);
   const [jewelryFileList, setJewelryFileList] = useState([]);
   const [sliderFileList, setSliderFileList] = useState([]);
+  const [ctaFile1List, setCtaFile1List] = useState([]);
+  const [ctaFile2List, setCtaFile2List] = useState([]);
+  const [jewelrySaleFile1List, setJewelrySaleFile1List] = useState([]);
+  const [jewelrySaleFile2List, setJewelrySaleFile2List] = useState([]);
 
   useEffect(() => {
     fetchAllData();
@@ -36,15 +42,19 @@ const DynamicHomePage = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [hero, jewelry, slider, marquee] = await Promise.all([
+      const [hero, jewelry, slider, marquee, cta, jewelrySale] = await Promise.all([
         axios.get(`${API_BASE}/dynamic-home/hero`),
         axios.get(`${API_BASE}/dynamic-home/jewelry`),
         axios.get(`${API_BASE}/dynamic-home/slider`),
-        axios.get(`${API_BASE}/dynamic-home/marquee`)
+        axios.get(`${API_BASE}/dynamic-home/marquee`),
+        axios.get(`${API_BASE}/dynamic-home/cta`),
+        axios.get(`${API_BASE}/dynamic-home/jewelry-sale`)
       ]);
 
       heroForm.setFieldsValue(hero.data.data);
       jewelryForm.setFieldsValue(jewelry.data.data);
+      ctaForm.setFieldsValue(cta.data.data);
+      jewelrySaleForm.setFieldsValue(jewelrySale.data.data);
       
       const mData = marquee.data.data;
       marqueeForm.setFieldsValue({
@@ -88,6 +98,40 @@ const DynamicHomePage = () => {
         }));
         setSliderFileList(files);
         sliderForm.setFieldsValue({ images: slider.data.data.images });
+      }
+
+      if (cta.data.data?.image1) {
+        setCtaFile1List([{
+          uid: cta.data.data.image1,
+          name: cta.data.data.image1.split('/').pop(),
+          status: 'done',
+          url: `${API_BASE.replace('/api', '')}${cta.data.data.image1}`
+        }]);
+      }
+      if (cta.data.data?.image2) {
+        setCtaFile2List([{
+          uid: cta.data.data.image2,
+          name: cta.data.data.image2.split('/').pop(),
+          status: 'done',
+          url: `${API_BASE.replace('/api', '')}${cta.data.data.image2}`
+        }]);
+      }
+
+      if (jewelrySale.data.data?.image1) {
+        setJewelrySaleFile1List([{
+          uid: jewelrySale.data.data.image1,
+          name: jewelrySale.data.data.image1.split('/').pop(),
+          status: 'done',
+          url: `${API_BASE.replace('/api', '')}${jewelrySale.data.data.image1}`
+        }]);
+      }
+      if (jewelrySale.data.data?.image2) {
+        setJewelrySaleFile2List([{
+          uid: jewelrySale.data.data.image2,
+          name: jewelrySale.data.data.image2.split('/').pop(),
+          status: 'done',
+          url: `${API_BASE.replace('/api', '')}${jewelrySale.data.data.image2}`
+        }]);
       }
     } catch (error) {
       message.error('Failed to fetch data');
@@ -139,12 +183,23 @@ const DynamicHomePage = () => {
       }
 
       let hasNewFile = false;
-      fileList.forEach(file => {
-        if (file.originFileObj) {
-          formData.append(fileField, file.originFileObj);
-          hasNewFile = true;
-        }
-      });
+      if (Array.isArray(fileField)) {
+        fileField.forEach(config => {
+          config.list.forEach(file => {
+            if (file.originFileObj) {
+              formData.append(config.field, file.originFileObj);
+              hasNewFile = true;
+            }
+          });
+        });
+      } else {
+        fileList.forEach(file => {
+          if (file.originFileObj) {
+            formData.append(fileField, file.originFileObj);
+            hasNewFile = true;
+          }
+        });
+      }
 
       console.log('Has new file:', hasNewFile);
       console.log('FormData entries:');
@@ -498,11 +553,123 @@ const DynamicHomePage = () => {
     </Card>
   );
 
+  const CTAEditor = () => (
+    <Card title="Adorn Yourself (CTA)" extra={
+      <Button type="primary" icon={<SaveOutlined />} loading={saving}
+        onClick={() => ctaForm.validateFields().then(v => handleSave('cta', v, null, [
+          { list: ctaFile1List, field: 'image1' },
+          { list: ctaFile2List, field: 'image2' }
+        ]))}>
+        Save
+      </Button>
+    }>
+      <Form form={ctaForm} layout="vertical">
+        <Row gutter={16}>
+          <Col xs={24} lg={12}>
+            <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+              <Input placeholder="Adorn Yourself with Timeless Beauty" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={12}>
+            <Form.Item name="description1" label="Description 1" rules={[{ required: true }]}>
+              <Input placeholder="Discover the perfect blend..." />
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={12}>
+            <Form.Item name="description2" label="Description 2" rules={[{ required: true }]}>
+              <Input placeholder="From sacred Ashta Dhatu..." />
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={12}>
+            <Form.Item name="description3" label="Description 3" rules={[{ required: true }]}>
+              <Input placeholder="Find pieces that reflect..." />
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={12}>
+            <Form.Item label="Image 1 (Main)">
+              <Upload listType="picture-card" fileList={ctaFile1List} onPreview={handlePreview}
+                beforeUpload={(file) => { setCtaFile1List([file]); return false; }}
+                onChange={({ fileList }) => setCtaFile1List(fileList)} maxCount={1}>
+                {ctaFile1List.length < 1 && <div><PlusOutlined /><div>Upload</div></div>}
+              </Upload>
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={12}>
+            <Form.Item label="Image 2 (Overlay)">
+              <Upload listType="picture-card" fileList={ctaFile2List} onPreview={handlePreview}
+                beforeUpload={(file) => { setCtaFile2List([file]); return false; }}
+                onChange={({ fileList }) => setCtaFile2List(fileList)} maxCount={1}>
+                {ctaFile2List.length < 1 && <div><PlusOutlined /><div>Upload</div></div>}
+              </Upload>
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={6}>
+            <Form.Item name="buttonText" label="Button Text">
+              <Input placeholder="Shop Now" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={6}>
+            <Form.Item name="buttonLink" label="Button Link">
+              <Input placeholder="/products" />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    </Card>
+  );
+
+  const JewelrySaleEditor = () => (
+    <Card title="Jewelry Sale" extra={
+      <Button type="primary" icon={<SaveOutlined />} loading={saving}
+        onClick={() => jewelrySaleForm.validateFields().then(v => handleSave('jewelry-sale', v, null, [
+          { list: jewelrySaleFile1List, field: 'image1' },
+          { list: jewelrySaleFile2List, field: 'image2' }
+        ]))}>
+        Save
+      </Button>
+    }>
+      <Form form={jewelrySaleForm} layout="vertical">
+        <Row gutter={16}>
+          <Col xs={24} lg={12}>
+            <Form.Item label="Banner Image (Left)">
+              <Upload listType="picture-card" fileList={jewelrySaleFile1List} onPreview={handlePreview}
+                beforeUpload={(file) => { setJewelrySaleFile1List([file]); return false; }}
+                onChange={({ fileList }) => setJewelrySaleFile1List(fileList)} maxCount={1}>
+                {jewelrySaleFile1List.length < 1 && <div><PlusOutlined /><div>Upload</div></div>}
+              </Upload>
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={12}>
+            <Form.Item label="Model Image (Right)">
+              <Upload listType="picture-card" fileList={jewelrySaleFile2List} onPreview={handlePreview}
+                beforeUpload={(file) => { setJewelrySaleFile2List([file]); return false; }}
+                onChange={({ fileList }) => setJewelrySaleFile2List(fileList)} maxCount={1}>
+                {jewelrySaleFile2List.length < 1 && <div><PlusOutlined /><div>Upload</div></div>}
+              </Upload>
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={6}>
+            <Form.Item name="buttonText" label="Button Text">
+              <Input placeholder="Shop Now" />
+            </Form.Item>
+          </Col>
+          <Col xs={24} lg={6}>
+            <Form.Item name="buttonLink" label="Button Link">
+              <Input placeholder="/products" />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    </Card>
+  );
+
   const tabs = [
     { label: 'Hero Section', key: '1', children: <HeroEditor /> },
     { label: 'Jewelry Banner', key: '2', children: <JewelryEditor /> },
     { label: 'Slider', key: '3', children: <SliderEditor /> },
-    { label: 'Promo Marquee', key: '4', children: <MarqueeEditor /> }
+    { label: 'Promo Marquee', key: '4', children: <MarqueeEditor /> },
+    { label: 'Adorn Yourself (CTA)', key: '5', children: <CTAEditor /> },
+    { label: 'Jewelry Sale', key: '6', children: <JewelrySaleEditor /> }
   ];
 
   return (

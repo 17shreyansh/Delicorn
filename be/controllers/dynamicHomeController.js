@@ -2,6 +2,8 @@ const HeroSection = require('../models/HeroSection');
 const JewelryBanner = require('../models/JewelryBanner');
 const SliderImage = require('../models/SliderImage');
 const PromoMarquee = require('../models/PromoMarquee');
+const CTABanner = require('../models/CTABanner');
+const JewelrySaleBanner = require('../models/JewelrySaleBanner');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -172,18 +174,102 @@ const updatePromoMarquee = async (req, res) => {
   }
 };
 
+// CTA Banner
+const getCTABanner = async (req, res) => {
+  try {
+    const banner = await CTABanner.getInstance();
+    res.json({ success: true, data: banner });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateCTABanner = async (req, res) => {
+  try {
+    let banner = await CTABanner.findOne();
+    if (!banner) banner = new CTABanner(req.body);
+    else {
+      if (req.files) {
+        if (req.files.image1) {
+          if (banner.image1 && !banner.image1.startsWith('/assets/')) {
+            const oldPath = path.join(__dirname, '..', banner.image1);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          }
+          banner.image1 = `/uploads/homepage/${req.files.image1[0].filename}`;
+        }
+        if (req.files.image2) {
+          if (banner.image2 && !banner.image2.startsWith('/assets/')) {
+            const oldPath = path.join(__dirname, '..', banner.image2);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          }
+          banner.image2 = `/uploads/homepage/${req.files.image2[0].filename}`;
+        }
+      }
+      const { image1, image2, ...other } = req.body;
+      Object.assign(banner, other);
+    }
+    await banner.save();
+    res.json({ success: true, data: banner, message: 'CTA banner updated' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Jewelry Sale Banner
+const getJewelrySaleBanner = async (req, res) => {
+  try {
+    const banner = await JewelrySaleBanner.getInstance();
+    res.json({ success: true, data: banner });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updateJewelrySaleBanner = async (req, res) => {
+  try {
+    let banner = await JewelrySaleBanner.findOne();
+    if (!banner) banner = new JewelrySaleBanner(req.body);
+    else {
+      if (req.files) {
+        if (req.files.image1) {
+          if (banner.image1 && !banner.image1.startsWith('/assets/')) {
+            const oldPath = path.join(__dirname, '..', banner.image1);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          }
+          banner.image1 = `/uploads/homepage/${req.files.image1[0].filename}`;
+        }
+        if (req.files.image2) {
+          if (banner.image2 && !banner.image2.startsWith('/assets/')) {
+            const oldPath = path.join(__dirname, '..', banner.image2);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+          }
+          banner.image2 = `/uploads/homepage/${req.files.image2[0].filename}`;
+        }
+      }
+      const { image1, image2, ...other } = req.body;
+      Object.assign(banner, other);
+    }
+    await banner.save();
+    res.json({ success: true, data: banner, message: 'Jewelry sale banner updated' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Get all dynamic home data
 const getAllDynamicHome = async (req, res) => {
   try {
-    const [hero, jewelry, slider, marquee] = await Promise.all([
+    const [hero, jewelry, slider, marquee, cta, jewelrySale] = await Promise.all([
       HeroSection.getInstance(),
       JewelryBanner.getInstance(),
       SliderImage.getInstance(),
-      PromoMarquee.getInstance()
+      PromoMarquee.getInstance(),
+      CTABanner.getInstance(),
+      JewelrySaleBanner.getInstance()
     ]);
     res.json({
       success: true,
-      data: { hero, jewelry, slider, marquee }
+      data: { hero, jewelry, slider, marquee, cta, jewelrySale }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -199,6 +285,10 @@ module.exports = {
   updateSlider,
   getPromoMarquee,
   updatePromoMarquee,
+  getCTABanner,
+  updateCTABanner,
+  getJewelrySaleBanner,
+  updateJewelrySaleBanner,
   getAllDynamicHome,
   upload
 };

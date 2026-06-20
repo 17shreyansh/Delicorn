@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Button } from "antd";
 import { useNavigate } from "react-router-dom";
-import image from "../assets/js.png"; // Banner with jewelry and text
-import girl from "../assets/js1.jpg"; // Model photo
+import axios from "axios";
+import defaultImage1 from "../assets/js.png"; // Banner with jewelry and text
+import defaultImage2 from "../assets/js1.jpg"; // Model photo
+
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const JewelrySale = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
+  const [data, setData] = useState({
+    buttonText: "Shop Now",
+    buttonLink: "/products",
+    image1: defaultImage1,
+    image2: defaultImage2
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -17,6 +26,28 @@ const JewelrySale = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(`${VITE_BACKEND_URL}/api/dynamic-home/jewelry-sale`);
+      if (res.data.data) {
+        setData(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching Jewelry Sale banner:', error);
+    }
+  };
+
+  const getImageUrl = (imagePath, defaultImg) => {
+    if (!imagePath) return defaultImg;
+    if (imagePath.startsWith('http')) return imagePath;
+    if (imagePath.startsWith('/uploads') || imagePath.startsWith('/assets')) return `${VITE_BACKEND_URL}${imagePath}`;
+    return imagePath;
+  };
 
   const containerStyle = {
     backgroundColor: "#FFF9EB",
@@ -120,7 +151,7 @@ const JewelrySale = () => {
           style={leftColStyle}
         >
           <img
-            src={image}
+            src={getImageUrl(data.image1, defaultImage1)}
             alt="Jewelry Banner"
             style={imageStyle}
           />
@@ -135,7 +166,7 @@ const JewelrySale = () => {
           style={rightColStyle}
         >
           <img
-            src={girl}
+            src={getImageUrl(data.image2, defaultImage2)}
             alt="Model"
             style={modelImageStyle}
           />
@@ -143,7 +174,7 @@ const JewelrySale = () => {
             <Button
               type="text"
               style={buttonStyle}
-              onClick={() => navigate("/products")}
+              onClick={() => navigate(data.buttonLink || "/products")}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor = "#145a4a")
               }
@@ -151,7 +182,7 @@ const JewelrySale = () => {
                 (e.currentTarget.style.backgroundColor = "transparent")
               }
             >
-              Shop Now
+              {data.buttonText || "Shop Now"}
             </Button>
           </div>
         </Col>

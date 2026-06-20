@@ -30,7 +30,7 @@ import Coupon from './Coupon';
 import Deleverycharges from './Deleverycharges';
 import AdminSupport from './adminSupport';
 import AdminMenu from './Menu';
-import UnifiedHomePage from './UnifiedHomePage';
+import DynamicHomePage from './DynamicHomePage';
 import AshtaDhatuProducts from './AshtaDhatuProducts';
 import FashionJewelryProducts from './FashionJewelryProducts';
 import AshtaDhatuCategories from './AshtaDhatuCategories';
@@ -231,7 +231,7 @@ const AdminLayout = () => {
         <Content className="admin-content">
           <Routes>
             <Route index element={<Dashboard />} />
-            <Route path="homepage" element={<UnifiedHomePage />} />
+            <Route path="homepage" element={<DynamicHomePage />} />
             <Route path="ashta-dhatu-products" element={<AshtaDhatuProducts />} />
             <Route path="fashion-jewelry-products" element={<FashionJewelryProducts />} />
             <Route path="ashta-dhatu-categories" element={<AshtaDhatuCategories />} />
