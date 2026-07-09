@@ -62,9 +62,9 @@ const ContactUs = () => {
               Address
             </Title>
             <Text style={{ display: "block", lineHeight: "1.8", marginBottom: "30px" }}>
-              <strong>[Brand Name]</strong> Jewellery Studio <br />
-              123, MG Road, Connaught Place <br />
-              New Delhi - 110001
+              <strong>Delicorn</strong> <br />
+              9/112 panjabhi bada, jatti katra, moti katra, <br />
+              agra up 282003 india
             </Text>
 
             <Title level={4} style={{ marginBottom: "20px", color: "#0b3b35" }}>
@@ -72,7 +72,7 @@ const ContactUs = () => {
             </Title>
             <Text style={{ display: "block", lineHeight: "1.8" }}>
               Phone: <strong>+91 98765 43210</strong> <br />
-              Email: <strong>support@[brandname].com</strong> <br />
+              Email: <strong>support@delicorn.com</strong> <br />
               Live Chat: Available 10 AM – 8 PM (Mon–Sat)
             </Text>
           </Col>
