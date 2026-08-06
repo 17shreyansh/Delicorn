@@ -1,5 +1,5 @@
 import React from "react";
-import ringImage from "../assets/1ring.jpeg";
+import ringImage from "../assets/3.png";
 
 
 
